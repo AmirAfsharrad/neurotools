@@ -5,7 +5,7 @@ close
 cd('./dataset')
 load('subject_1.mat')
 cd('..')
-
+fs = 2400;
 
 %% Loading Preprocssed Data
 % clear
@@ -86,6 +86,25 @@ FData.exe.Idle.RMS   =  squeeze(rms(FData.exe.Idle.signal,2));
 FData.exe.Thumb.RMS  =  squeeze(rms(FData.exe.Thumb.signal,2));
 FData.exe.test.skew   =  squeeze(rms(FData.exe.test.signal,2));
 
+
+%% Mean Freq
+
+for channel = 1 : 63
+    FData.exe.Arm.meanFreq(channel,:)    =  meanfreq(squeeze(FData.exe.Arm.signal(channel,:,:)), fs);
+    FData.exe.Leg.meanFreq(channel,:)    =  meanfreq(squeeze(FData.exe.Leg.signal(channel,:,:)), fs);
+    FData.exe.Idle.meanFreq(channel,:)   =  meanfreq(squeeze(FData.exe.Idle.signal(channel,:,:)), fs);
+    FData.exe.Thumb.meanFreq(channel,:)  =  meanfreq(squeeze(FData.exe.Thumb.signal(channel,:,:)), fs);
+end
+
+%%
+
+
+for trials = 1 : Nexe
+    for channels = 1 : 63
+        FData.exe.test.meanFreq(channels, trials)  =  meanfreq(FData.exe.test.signal(channels, :, trials), 120);
+    end
+end
+
 %% Mode Freq
 
 for trials = 1 : 18
@@ -148,23 +167,6 @@ end
 
 clear Y f L P1 P2 I
 
-%% Mean Freq
-
-for trials = 1 : 18
-    for channels = 1 : 64
-        FData.exe.Arm.meanFreq  (channels, trials)  =  meanfreq(FData.exe.Arm.signal(channels, :, trials), 120);
-        FData.exe.Leg.meanFreq  (channels, trials)  =  meanfreq(FData.exe.Leg.signal(channels, :, trials), 120);
-        FData.exe.Idle.meanFreq (channels, trials)  =  meanfreq(FData.exe.Idle.signal(channels, :, trials), 120);
-        FData.exe.Thumb.meanFreq(channels, trials)  =  meanfreq(FData.exe.Thumb.signal(channels, :, trials), 120);
-    end
-end
-
-
-for trials = 1 : Nexe
-    for channels = 1 : 63
-        FData.exe.test.meanFreq(channels, trials)  =  meanfreq(FData.exe.test.signal(channels, :, trials), 120);
-    end
-end
 
 %% Median Freq
 

@@ -110,34 +110,34 @@ end
 %% Sine Transform
 
 for channel = 1 : 63
-    FData.exe.Arm.DST  (channel, :, :)  =  dst(squeeze(FData.exe.Arm.signal(channel, 1:20:end, :)));
-    FData.exe.Leg.DST  (channel, :, :)  =  dst(squeeze(FData.exe.Leg.signal(channel, 1:20:end, :)));
-    FData.exe.Idle.DST (channel, :, :)  =  dst(squeeze(FData.exe.Idle.signal(channel, 1:20:end, :)));
-    FData.exe.Thumb.DST(channel, :, :)  =  dst(squeeze(FData.exe.Thumb.signal(channel, 1:20:end, :)));
-    FData.exe.test.DST (channel, :, :)  =  dst(squeeze(FData.exe.test.signal(channel, 1:20:end, :)));
+    FData.exe.Arm.DST  (channel, :, :)  =  dst(squeeze(FData.exe.Arm.signal(channel, :, :)));
+    FData.exe.Leg.DST  (channel, :, :)  =  dst(squeeze(FData.exe.Leg.signal(channel, :, :)));
+    FData.exe.Idle.DST (channel, :, :)  =  dst(squeeze(FData.exe.Idle.signal(channel, :, :)));
+    FData.exe.Thumb.DST(channel, :, :)  =  dst(squeeze(FData.exe.Thumb.signal(channel, :, :)));
+    FData.exe.test.DST (channel, :, :)  =  dst(squeeze(FData.exe.test.signal(channel, :, :)));
 end
 
 %% Cosine Transform
 
 for channel = 1 : 63
-    FData.exe.Arm.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Arm.signal(channel, 1:20:end, :)));
-    FData.exe.Leg.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Leg.signal(channel, 1:20:end, :)));
-    FData.exe.Idle.DST (channel, :, :)  =  dct(squeeze(FData.exe.Idle.signal(channel, 1:20:end, :)));
-    FData.exe.Thumb.DCT(channel, :, :)  =  dct(squeeze(FData.exe.Thumb.signal(channel, 1:20:end, :)));
-    FData.exe.test.DCT (channel, :, :)  =  dct(squeeze(FData.exe.test.signal(channel, 1:20:end, :)));
+    FData.exe.Arm.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Arm.signal(channel, :, :)));
+    FData.exe.Leg.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Leg.signal(channel, :, :)));
+    FData.exe.Idle.DST (channel, :, :)  =  dct(squeeze(FData.exe.Idle.signal(channel, :, :)));
+    FData.exe.Thumb.DCT(channel, :, :)  =  dct(squeeze(FData.exe.Thumb.signal(channel, :, :)));
+    FData.exe.test.DCT (channel, :, :)  =  dct(squeeze(FData.exe.test.signal(channel, :, :)));
 end
 
 %% Band Pass Filters
 
-h_alpha = BPF(fs, 7.5  , 13.5, 120);
-h_beta =  BPF(fs, 13.5 , 20, 120);
-h_theta = BPF(fs, 3.5  ,  7.5, 120);
-h_delta = BPF(fs, eps,  3.5, 120);
+h_alpha = BPF(7200, 7.5  , 13.5, fs);
+h_beta =  BPF(7200, 13.5 , 20, fs);
+h_theta = BPF(7200, 3.5  ,  7.5, fs);
+h_delta = BPF(7200, eps,  3.5, fs);
 
 
 %% Filtering Frequency Bands
 
-for channels = 1 : 64
+for channels = 1 : 63
     FData.exe.Arm.alpha_band(channels,:,:)  = doFilt(h_alpha, squeeze(FData.exe.Arm.signal(channels, :, :)));
     FData.exe.Arm.beta_band(channels,:, :)  = doFilt(h_beta,  squeeze(FData.exe.Arm.signal(channels, :, :)));
     FData.exe.Arm.theta_band(channels,:, :) = doFilt(h_theta, squeeze(FData.exe.Arm.signal(channels, :, :)));
@@ -164,109 +164,40 @@ for channels = 1 : 64
     FData.exe.test.delta_band(channels,:, :) = doFilt(h_delta, squeeze(FData.exe.test.signal(channels, :, :)));        
 end
 
-%%
-for trials = 1 : Nexe
-    for channels = 1 : 64
-        FData.exe.test.alpha_band(channels,:, trials) = doFilt(h_alpha, FData.exe.test.signal(channels, :, trials));
-        FData.exe.test.beta_band(channels,:, trials) = doFilt(h_beta, FData.exe.test.signal(channels, :, trials));
-        FData.exe.test.theta_band(channels,:, trials) = doFilt(h_theta, FData.exe.test.signal(channels, :, trials));
-        FData.exe.test.delta_band(channels,:, trials) = doFilt(h_delta, FData.exe.test.signal(channels, :, trials));
-    end
-end
-
-
-for trials = 1 : Nimg
-    for channels = 1 : 64
-        FData.img.test.alpha_band(channels,:, trials) = doFilt(h_alpha, FData.img.test.signal(channels, :, trials));
-        FData.img.test.beta_band(channels,:, trials) = doFilt(h_beta, FData.img.test.signal(channels, :, trials));
-        FData.img.test.theta_band(channels,:, trials) = doFilt(h_theta, FData.img.test.signal(channels, :, trials));
-        FData.img.test.delta_band(channels,:, trials) = doFilt(h_delta, FData.img.test.signal(channels, :, trials));
-    end
-end
-
 clear h_alpha h_beta h_delta h_theta
 
 %% Checking The Procedure
-figure
-plotFFT(Data(1).img.leg(3,:,16), 120, 0, 60, 'FFT','|fft|',10);
-hold on
-plotFFT(FData.img.Leg.alpha_band(3,:,16), 120, 0, 60, 'FFT of img.Idle Channel 3 Trial 16 ','',10);
-plotFFT(FData.img.Leg.beta_band(3,:,16), 120, 0, 60, 'FFT of img.Idle Channel 3 Trial 16 ','',10);
-plotFFT(FData.img.Leg.theta_band(3,:,16), 120, 0, 60, 'FFT of img.Idle Channel 3 Trial 16 ','',10);
-plotFFT(FData.img.Leg.delta_band(3,:,16), 120, 0, 60, 'FFT of img.Idle Channel 3 Trial 16 ','',10);
-legend('full','alpha','beta','theta','delta');
 
 figure
-plotFFT(Data(1).exe.test(2,:,16), 120, 0, 60, 'FFT','|fft|',10);
+plotFFT(FData.exe.Arm.signal(1,:,16), fs, 0, 60, 'FFT','|fft|',10);
 hold on
-plotFFT(FData.exe.test.alpha_band(2,:,16), 120, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
-plotFFT(FData.exe.test.beta_band(2,:,16), 120, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
-plotFFT(FData.exe.test.theta_band(2,:,16), 120, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
-plotFFT(FData.exe.test.delta_band(2,:,16), 120, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
+plotFFT(FData.exe.Arm.alpha_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
+plotFFT(FData.exe.Arm.beta_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
+plotFFT(FData.exe.Arm.theta_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
+plotFFT(FData.exe.Arm.delta_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
 legend('full','alpha','beta','theta','delta');
 
 %% Freq Band Energy
-for trials = 1 : 20
-    for channels = 1 : 64
-        % EXE Data
-        FData.exe.Arm.alphaEnergy(channels, trials) = norm(FData.exe.Arm.alpha_band(channels, :, trials)).^2;
-        FData.exe.Arm.betaEnergy(channels, trials) = norm(FData.exe.Arm.beta_band(channels, :, trials)).^2;
-        FData.exe.Arm.thetaEnergy(channels, trials) = norm(FData.exe.Arm.theta_band(channels, :, trials)).^2;
-        FData.exe.Arm.deltaEnergy(channels, trials) = norm(FData.exe.Arm.delta_band(channels, :, trials)).^2;
-        
-        FData.exe.Leg.alphaEnergy(channels, trials) = norm(FData.exe.Leg.alpha_band(channels, :, trials)).^2;
-        FData.exe.Leg.betaEnergy(channels, trials) = norm(FData.exe.Leg.beta_band(channels, :, trials)).^2;
-        FData.exe.Leg.thetaEnergy(channels, trials) = norm(FData.exe.Leg.theta_band(channels, :, trials)).^2;
-        FData.exe.Leg.deltaEnergy(channels, trials) = norm(FData.exe.Leg.delta_band(channels, :, trials)).^2;
-        
-        FData.exe.Thumb.alphaEnergy(channels, trials) = norm(FData.exe.Thumb.alpha_band(channels, :, trials)).^2;
-        FData.exe.Thumb.betaEnergy(channels, trials) = norm(FData.exe.Thumb.beta_band(channels, :, trials)).^2;
-        FData.exe.Thumb.thetaEnergy(channels, trials) = norm(FData.exe.Thumb.theta_band(channels, :, trials)).^2;
-        FData.exe.Thumb.deltaEnergy(channels, trials) = norm(FData.exe.Thumb.delta_band(channels, :, trials)).^2;
-        
-        FData.exe.Idle.alphaEnergy(channels, trials) = norm(FData.exe.Idle.alpha_band(channels, :, trials)).^2;
-        FData.exe.Idle.betaEnergy(channels,  trials) = norm(FData.exe.Idle.beta_band(channels, :, trials)).^2;
-        FData.exe.Idle.thetaEnergy(channels, trials) = norm(FData.exe.Idle.theta_band(channels, :, trials)).^2;
-        FData.exe.Idle.deltaEnergy(channels, trials) = norm(FData.exe.Idle.delta_band(channels, :, trials)).^2;
-        
-        % IMG Data
-        
-        FData.img.Arm.alphaEnergy(channels, trials) = norm(FData.img.Arm.alpha_band(channels, :, trials)).^2;
-        FData.img.Arm.betaEnergy(channels, trials)  = norm(FData.img.Arm.beta_band(channels, :, trials)).^2;
-        FData.img.Arm.thetaEnergy(channels, trials) = norm(FData.img.Arm.theta_band(channels, :, trials)).^2;
-        FData.img.Arm.deltaEnergy(channels, trials) = norm(FData.img.Arm.delta_band(channels, :, trials)).^2;
-        
-        FData.img.Leg.alphaEnergy(channels, trials) = norm(FData.img.Leg.alpha_band(channels, :, trials)).^2;
-        FData.img.Leg.betaEnergy(channels, trials)  = norm(FData.img.Leg.beta_band(channels, :, trials)).^2;
-        FData.img.Leg.thetaEnergy(channels, trials) = norm(FData.img.Leg.theta_band(channels, :, trials)).^2;
-        FData.img.Leg.deltaEnergy(channels, trials) = norm(FData.img.Leg.delta_band(channels, :, trials)).^2;
-        
-        FData.img.Thumb.alphaEnergy(channels, trials) = norm(FData.img.Thumb.alpha_band(channels, :, trials)).^2;
-        FData.img.Thumb.betaEnergy(channels, trials)  = norm(FData.img.Thumb.beta_band(channels, :, trials)).^2;
-        FData.img.Thumb.thetaEnergy(channels, trials) = norm(FData.img.Thumb.theta_band(channels, :, trials)).^2;
-        FData.img.Thumb.deltaEnergy(channels, trials) = norm(FData.img.Thumb.delta_band(channels, :, trials)).^2;
-        
-    end
-end
 
-for trials = 1 : Nexe
-    for channels = 1 : 64
-        FData.exe.test.alphaEnergy(channels, trials) = norm(FData.exe.test.alpha_band(channels, :, trials)).^2;
-        FData.exe.test.betaEnergy(channels, trials)  = norm(FData.exe.test.beta_band(channels, :, trials)).^2;
-        FData.exe.test.thetaEnergy(channels, trials) = norm(FData.exe.test.theta_band(channels, :, trials)).^2;
-        FData.exe.test.deltaEnergy(channels, trials) = norm(FData.exe.test.delta_band(channels, :, trials)).^2;
-    end
-end
+FData.exe.Arm.alphaEnergy = squeeze(sum(FData.exe.Arm.alpha_band.^2, 2));
+FData.exe.Arm.betaEnergy  = squeeze(sum(FData.exe.Arm.beta_band.^2, 2));
+FData.exe.Arm.thetaEnergy = squeeze(sum(FData.exe.Arm.theta_band.^2, 2));
+FData.exe.Arm.deltaEnergy = squeeze(sum(FData.exe.Arm.delta_band.^2, 2));
 
+FData.exe.Leg.alphaEnergy = squeeze(sum(FData.exe.Leg.alpha_band.^2, 2));
+FData.exe.Leg.betaEnergy  = squeeze(sum(FData.exe.Leg.beta_band.^2, 2));
+FData.exe.Leg.thetaEnergy = squeeze(sum(FData.exe.Leg.theta_band.^2, 2));
+FData.exe.Leg.deltaEnergy = squeeze(sum(FData.exe.Leg.delta_band.^2, 2));
 
-for trials = 1 : Nimg
-    for channels = 1 : 64
-        FData.img.test.alphaEnergy(channels, trials) = norm(FData.img.test.alpha_band(channels, :, trials)).^2;
-        FData.img.test.betaEnergy(channels, trials)  = norm(FData.img.test.beta_band(channels, :, trials)).^2;
-        FData.img.test.thetaEnergy(channels, trials) = norm(FData.img.test.theta_band(channels, :, trials)).^2;
-        FData.img.test.deltaEnergy(channels, trials) = norm(FData.img.test.delta_band(channels, :, trials)).^2;
-    end
-end
+FData.exe.Thumb.alphaEnergy = squeeze(sum(FData.exe.Thumb.alpha_band.^2, 2));
+FData.exe.Thumb.betaEnergy  = squeeze(sum(FData.exe.Thumb.beta_band.^2, 2));
+FData.exe.Thumb.thetaEnergy = squeeze(sum(FData.exe.Thumb.theta_band.^2, 2));
+FData.exe.Thumb.deltaEnergy = squeeze(sum(FData.exe.Thumb.delta_band.^2, 2));
+
+FData.exe.Idle.alphaEnergy = squeeze(sum(FData.exe.Idle.alpha_band.^2, 2));
+FData.exe.Idle.betaEnergy  = squeeze(sum(FData.exe.Idle.beta_band.^2, 2));
+FData.exe.Idle.thetaEnergy = squeeze(sum(FData.exe.Idle.theta_band.^2, 2));
+FData.exe.Idle.deltaEnergy = squeeze(sum(FData.exe.Idle.delta_band.^2, 2));
 
 %% STFT
 % clear FData

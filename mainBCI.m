@@ -107,119 +107,26 @@ for channel = 1 : 63
     FData.exe.test.medFreq(channel, :)  =  medfreq(squeeze(FData.exe.test.signal(channel, :, :)), fs);
 end
 
-%% Mode Freq
-
-for trials = 1 : 18
-    for channels = 1 : 64
-        Y = fft(FData.exe.Arm.signal(channels, :, trials));
-        L = length(Y);
-        P2 = abs(Y/L);
-        P1 = P2(1:L/2+1);
-        P1(2:end-1) = 2*P1(2:end-1);
-        [~, I] = max(P1);
-        f = 120*(0:(L/2))/L;
-        FData.exe.Arm.modeFreq(channels, trials) = f(I);
-        
-        
-        Y = fft(FData.exe.Leg.signal(channels, :, trials));
-        L = length(Y);
-        P2 = abs(Y/L);
-        P1 = P2(1:L/2+1);
-        P1(2:end-1) = 2*P1(2:end-1);
-        [~, I] = max(P1);
-        f = 120*(0:(L/2))/L;
-        FData.exe.Leg.modeFreq(channels, trials) = f(I);
-        
-        
-        Y = fft(FData.exe.Thumb.signal(channels, :, trials));
-        L = length(Y);
-        P2 = abs(Y/L);
-        P1 = P2(1:L/2+1);
-        P1(2:end-1) = 2*P1(2:end-1);
-        [~, I] = max(P1);
-        f = 120*(0:(L/2))/L;
-        FData.exe.Thumb.modeFreq(channels, trials) = f(I);
-        
-        
-        Y = fft(FData.exe.Idle.signal(channels, :, trials));
-        L = length(Y);
-        P2 = abs(Y/L);
-        P1 = P2(1:L/2+1);
-        P1(2:end-1) = 2*P1(2:end-1);
-        [~, I] = max(P1);
-        f = 120*(0:(L/2))/L;
-        FData.exe.Idle.modeFreq(channels, trials) = f(I);
-    
-       
-    end
-end
-for trials = 1 : Nexe
-    for channels = 1 : 63
-        Y = fft(FData.exe.test.signal(channels, :, trials));
-        L = length(Y);
-        P2 = abs(Y/L);
-        P1 = P2(1:L/2+1);
-        P1(2:end-1) = 2*P1(2:end-1);
-        [~, I] = max(P1);
-        f = 120*(0:(L/2))/L;
-        FData.exe.test.modeFreq(channels, trials) = f(I);
-    end
-end
-
-
-clear Y f L P1 P2 I
-
-
 %% Sine Transform
-for trials = 1 : 20
-    for channels = 1 : 64
-        FData.exe.Arm.DST  (channels, :, trials)  =  dst(FData.exe.Arm.signal(channels, :, trials));
-        FData.exe.Leg.DST  (channels, :, trials)  =  dst(FData.exe.Leg.signal(channels, :, trials));
-        FData.exe.Idle.DST (channels, :, trials)  =  dst(FData.exe.Idle.signal(channels, :, trials));
-        FData.exe.Thumb.DST(channels, :, trials)  =  dst(FData.exe.Thumb.signal(channels, :, trials));
-        
-        FData.img.Arm.DST  (channels, :, trials)  =  dst(FData.img.Arm.signal(channels, :, trials));
-        FData.img.Leg.DST  (channels, :, trials)  =  dst(FData.img.Leg.signal(channels, :, trials));
-        FData.img.Thumb.DST(channels, :, trials)  =  dst(FData.img.Thumb.signal(channels, :, trials));
-    end
-end
-for trials = 1 : Nexe
-    for channels = 1 : 64
-        FData.exe.test.DST(channels, :, trials)  =  dst(FData.exe.test.signal(channels, :, trials));
-    end
+
+for channel = 1 : 63
+    FData.exe.Arm.DST  (channel, :, :)  =  dst(squeeze(FData.exe.Arm.signal(channel, :, :)));
+    FData.exe.Leg.DST  (channel, :, :)  =  dst(squeeze(FData.exe.Leg.signal(channel, :, :)));
+    FData.exe.Idle.DST (channel, :, :)  =  dst(squeeze(FData.exe.Idle.signal(channel, :, :)));
+    FData.exe.Thumb.DST(channel, :, :)  =  dst(squeeze(FData.exe.Thumb.signal(channel, :, :)));
+    FData.exe.test.DST (channel, :, :)  =  dst(squeeze(FData.exe.test.signal(channel, :, :)));
 end
 
-
-for trials = 1 : Nimg
-    for channels = 1 : 64
-        FData.img.test.DST(channels, :, trials)  =  dst(FData.img.test.signal(channels, :, trials));
-    end
-end
 %% Cosine Transform
-for trials = 1 : 20
-    for channels = 1 : 64
-        FData.exe.Arm.DCT  (channels, :, trials)  =  dct(FData.exe.Arm.signal(channels, :, trials));
-        FData.exe.Leg.DCT  (channels, :, trials)  =  dct(FData.exe.Leg.signal(channels, :, trials));
-        FData.exe.Idle.DCT (channels, :, trials)  =  dct(FData.exe.Idle.signal(channels, :, trials));
-        FData.exe.Thumb.DCT(channels, :, trials)  =  dct(FData.exe.Thumb.signal(channels, :, trials));
-        
-        FData.img.Arm.DCT  (channels, :, trials)  =  dct(FData.img.Arm.signal(channels, :, trials));
-        FData.img.Leg.DCT  (channels, :, trials)  =  dct(FData.img.Leg.signal(channels, :, trials));
-        FData.img.Thumb.DCT(channels, :, trials)  =  dct(FData.img.Thumb.signal(channels, :, trials));
-    end
-end
-for trials = 1 : Nexe
-    for channels = 1 : 64
-        FData.exe.test.DCT(channels, :, trials)  =  dct(FData.exe.test.signal(channels, :, trials));
-    end
+
+for channel = 1 : 63
+    FData.exe.Arm.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Arm.signal(channel, :, :)));
+    FData.exe.Leg.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Leg.signal(channel, :, :)));
+    FData.exe.Idle.DST (channel, :, :)  =  dct(squeeze(FData.exe.Idle.signal(channel, :, :)));
+    FData.exe.Thumb.DCT(channel, :, :)  =  dct(squeeze(FData.exe.Thumb.signal(channel, :, :)));
+    FData.exe.test.DCT (channel, :, :)  =  dct(squeeze(FData.exe.test.signal(channel, :, :)));
 end
 
-
-for trials = 1 : Nimg
-    for channels = 1 : 64
-        FData.img.test.DCT(channels, :, trials)  =  dct(FData.img.test.signal(channels, :, trials));
-    end
-end
 %% Band Pass Filters
 % Frequency Bands According to the HW :))
 h_alpha = BPF(360, 7.5  , 13.5, 120);

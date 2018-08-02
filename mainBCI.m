@@ -199,33 +199,20 @@ FData.exe.Idle.betaEnergy  = squeeze(sum(FData.exe.Idle.beta_band.^2, 2));
 FData.exe.Idle.thetaEnergy = squeeze(sum(FData.exe.Idle.theta_band.^2, 2));
 FData.exe.Idle.deltaEnergy = squeeze(sum(FData.exe.Idle.delta_band.^2, 2));
 
+FData.exe.test.alphaEnergy = squeeze(sum(FData.exe.test.alpha_band.^2, 2));
+FData.exe.test.betaEnergy  = squeeze(sum(FData.exe.test.beta_band.^2, 2));
+FData.exe.test.thetaEnergy = squeeze(sum(FData.exe.test.theta_band.^2, 2));
+FData.exe.test.deltaEnergy = squeeze(sum(FData.exe.test.delta_band.^2, 2));
+
 %% STFT
-% clear FData
-% load('FData.mat')
-for trials = 1 : 20
-    for channels = 1 : 64
-        FData.exe.Arm.STFT  (channels, :, :, trials)  =  abs(spectrogram(FData.exe.Arm.signal(channels, :, trials),10,0,15,120));
-        FData.exe.Leg.STFT  (channels, :, :, trials)  =  abs(spectrogram(FData.exe.Leg.signal(channels, :, trials),10,0,15,120));
-        FData.exe.Idle.STFT (channels, :, :, trials)  =  abs(spectrogram(FData.exe.Idle.signal(channels, :, trials),10,0,15,120));
-        FData.exe.Thumb.STFT(channels, :, :, trials)  =  abs(spectrogram(FData.exe.Thumb.signal(channels, :, trials),10,0,15,120));
-        
-        FData.img.Arm.STFT (channels, :, :, trials)  =  abs(spectrogram(FData.img.Arm.signal(channels, :, trials),10,0,15,120));
-        FData.img.Leg.STFT  (channels, :, :, trials)  =  abs(spectrogram(FData.img.Leg.signal(channels, :, trials),10,0,15,120));
-        FData.img.Thumb.STFT(channels, :, :, trials)  =  abs(spectrogram(FData.img.Thumb.signal(channels, :, trials),10,0,15,120));
-    end
-end
 
-for trials = 1 : Nexe
-    for channels = 1 : 64
-        FData.exe.test.STFT(channels, :, :, trials)  =  abs(spectrogram(FData.exe.test.signal(channels, :, trials),10,0,15,120));
-    end
-end
+for channels = 1 : 63
+    FData.exe.Arm.STFT  (channels, :, :, :)  =  abs(STFT(squeeze(FData.exe.Arm.signal(channels, :, :)),10,0,15,fs));
+    FData.exe.Leg.STFT  (channels, :, :, :)  =  abs(STFT(squeeze(FData.exe.Leg.signal(channels, :, :)),10,0,15,fs));
+    FData.exe.Idle.STFT (channels, :, :, :)  =  abs(STFT(squeeze(FData.exe.Idle.signal(channels, :, :)),10,0,15,fs));
+    FData.exe.Thumb.STFT(channels, :, :, :)  =  abs(STFT(squeeze(FData.exe.Thumb.signal(channels, :, :)),10,0,15,fs));
+    FData.exe.test.STFT(channels, :, :, :)   =  abs(STFT(squeeze(FData.exe.test.signal(channels, :, :)),10,0,15,fs));
 
-
-for trials = 1 : Nimg
-    for channels = 1 : 64
-        FData.img.test.STFT(channels, :, :, trials)  =  abs(spectrogram(FData.img.test.signal(channels, :, trials),10,0,15,120));
-    end
 end
 
 %% Alpha and Beta Band Filtering
@@ -265,6 +252,7 @@ hold on
 plotFFT(FData.exe.Leg.mainbands(11,:,12), 120, 0, 60, '', '', 10);
 plotFFT(FData.exe.Leg.signal(11,:,12), 120, 0, 60, '', '', 10);
 legend('full','\alpha and \beta');
+
 %% Common Spatial Patterns
 FData.exe.covMat(1, :, :) = cov(mean(FData.exe.Arm.mainbands, 3)');
 FData.exe.covMat(2, :, :) = cov(mean(FData.exe.Leg.mainbands, 3)');

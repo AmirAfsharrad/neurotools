@@ -67,42 +67,24 @@ FData.exe.Arm.var    =  squeeze(var(FData.exe.Arm.signal,0, 2));
 FData.exe.Leg.var    =  squeeze(var(FData.exe.Leg.signal,0, 2));
 FData.exe.Idle.var   =  squeeze(var(FData.exe.Idle.signal,0, 2));
 FData.exe.Thumb.var  =  squeeze(var(FData.exe.Thumb.signal,0, 2));        
-FData.exe.test.var   =  var(FData.exe.test.signal,0, 2);
+FData.exe.test.var   =  squeeze(var(FData.exe.test.signal,0, 2));
 
 
 %% Skewness
-for trials = 1 : 18
-    for channels = 1 : 64
-        FData.exe.Arm.skew(channels, trials)    =  skewness(FData.exe.Arm.signal(channels, :, trials),0, 2);
-        FData.exe.Leg.skew(channels, trials)    =  skewness(FData.exe.Leg.signal(channels, :, trials),0, 2);
-        FData.exe.Idle.skew(channels, trials)   =  skewness(FData.exe.Idle.signal(channels, :, trials),0, 2);
-        FData.exe.Thumb.skew(channels, trials)  =  skewness(FData.exe.Thumb.signal(channels, :, trials),0, 2);        
-    end
-end
 
-for trials = 1 : Nexe
-    for channels = 1 : 63
-        FData.exe.test.skew(channels, trials)  =  skewness(FData.exe.test.signal(channels, :, trials),0, 2);
-    end
-end
+FData.exe.Arm.skew    =  squeeze(skewness(FData.exe.Arm.signal,0, 2));
+FData.exe.Leg.skew    =  squeeze(skewness(FData.exe.Leg.signal,0, 2));
+FData.exe.Idle.skew   =  squeeze(skewness(FData.exe.Idle.signal,0, 2));
+FData.exe.Thumb.skew  =  squeeze(skewness(FData.exe.Thumb.signal,0, 2));        
+FData.exe.test.skew   =  squeeze(skewness(FData.exe.test.signal,0, 2));
 
-%% Form Factor
+%% Root Mean Square
 
-for trials = 1 : 18
-    for channels = 1 : 64
-        FData.exe.Arm.formFactor  (channels, trials)  =  rms(FData.exe.Arm.signal(channels, :, trials))./mean(abs(FData.exe.Arm.signal(channels, :, trials)));  
-        FData.exe.Leg.formFactor  (channels, trials)  =  rms(FData.exe.Leg.signal(channels, :, trials))./mean(abs(FData.exe.Leg.signal(channels, :, trials)));
-        FData.exe.Idle.formFactor (channels, trials)  =  rms(FData.exe.Idle.signal(channels, :, trials))./mean(abs(FData.exe.Idle.signal(channels, :, trials)));
-        FData.exe.Thumb.formFactor(channels, trials)  =  rms(FData.exe.Thumb.signal(channels, :, trials))./mean(abs(FData.exe.Thumb.signal(channels, :, trials))); 
-        
-    end
-end
-
-for trials = 1 : Nexe
-    for channels = 1 : 63
-        FData.exe.test.formFactor(channels, trials)  =  rms(FData.exe.test.signal(channels, :, trials))./mean(abs(FData.exe.test.signal(channels, :, trials))); 
-    end
-end
+FData.exe.Arm.RMS    =  squeeze(rms(FData.exe.Arm.signal,2));
+FData.exe.Leg.RMS    =  squeeze(rms(FData.exe.Leg.signal,2));
+FData.exe.Idle.RMS   =  squeeze(rms(FData.exe.Idle.signal,2));
+FData.exe.Thumb.RMS  =  squeeze(rms(FData.exe.Thumb.signal,2));
+FData.exe.test.skew   =  squeeze(rms(FData.exe.test.signal,2));
 
 %% Mode Freq
 

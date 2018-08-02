@@ -110,72 +110,61 @@ end
 %% Sine Transform
 
 for channel = 1 : 63
-    FData.exe.Arm.DST  (channel, :, :)  =  dst(squeeze(FData.exe.Arm.signal(channel, :, :)));
-    FData.exe.Leg.DST  (channel, :, :)  =  dst(squeeze(FData.exe.Leg.signal(channel, :, :)));
-    FData.exe.Idle.DST (channel, :, :)  =  dst(squeeze(FData.exe.Idle.signal(channel, :, :)));
-    FData.exe.Thumb.DST(channel, :, :)  =  dst(squeeze(FData.exe.Thumb.signal(channel, :, :)));
-    FData.exe.test.DST (channel, :, :)  =  dst(squeeze(FData.exe.test.signal(channel, :, :)));
+    FData.exe.Arm.DST  (channel, :, :)  =  dst(squeeze(FData.exe.Arm.signal(channel, 1:20:end, :)));
+    FData.exe.Leg.DST  (channel, :, :)  =  dst(squeeze(FData.exe.Leg.signal(channel, 1:20:end, :)));
+    FData.exe.Idle.DST (channel, :, :)  =  dst(squeeze(FData.exe.Idle.signal(channel, 1:20:end, :)));
+    FData.exe.Thumb.DST(channel, :, :)  =  dst(squeeze(FData.exe.Thumb.signal(channel, 1:20:end, :)));
+    FData.exe.test.DST (channel, :, :)  =  dst(squeeze(FData.exe.test.signal(channel, 1:20:end, :)));
 end
 
 %% Cosine Transform
 
 for channel = 1 : 63
-    FData.exe.Arm.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Arm.signal(channel, :, :)));
-    FData.exe.Leg.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Leg.signal(channel, :, :)));
-    FData.exe.Idle.DST (channel, :, :)  =  dct(squeeze(FData.exe.Idle.signal(channel, :, :)));
-    FData.exe.Thumb.DCT(channel, :, :)  =  dct(squeeze(FData.exe.Thumb.signal(channel, :, :)));
-    FData.exe.test.DCT (channel, :, :)  =  dct(squeeze(FData.exe.test.signal(channel, :, :)));
+    FData.exe.Arm.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Arm.signal(channel, 1:20:end, :)));
+    FData.exe.Leg.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Leg.signal(channel, 1:20:end, :)));
+    FData.exe.Idle.DST (channel, :, :)  =  dct(squeeze(FData.exe.Idle.signal(channel, 1:20:end, :)));
+    FData.exe.Thumb.DCT(channel, :, :)  =  dct(squeeze(FData.exe.Thumb.signal(channel, 1:20:end, :)));
+    FData.exe.test.DCT (channel, :, :)  =  dct(squeeze(FData.exe.test.signal(channel, 1:20:end, :)));
 end
 
 %% Band Pass Filters
-% Frequency Bands According to the HW :))
-h_alpha = BPF(360, 7.5  , 13.5, 120);
-h_beta =  BPF(360, 13.5 , 20, 120);
-h_theta = BPF(360, 3.5  ,  7.5, 120);
-h_delta = BPF(360, eps,  3.5, 120);
-close all 
+
+h_alpha = BPF(fs, 7.5  , 13.5, 120);
+h_beta =  BPF(fs, 13.5 , 20, 120);
+h_theta = BPF(fs, 3.5  ,  7.5, 120);
+h_delta = BPF(fs, eps,  3.5, 120);
+
+
 %% Filtering Frequency Bands
-for trials = 1 : 20
-    for channels = 1 : 64
-        FData.exe.Arm.alpha_band(channels,:,trials)  = doFilt(h_alpha, FData.exe.Arm.signal(channels, :, trials));
-        FData.exe.Arm.beta_band(channels,:, trials)  = doFilt(h_beta,  FData.exe.Arm.signal(channels, :, trials));
-        FData.exe.Arm.theta_band(channels,:, trials) = doFilt(h_theta, FData.exe.Arm.signal(channels, :, trials));
-        FData.exe.Arm.delta_band(channels,:, trials) = doFilt(h_delta, FData.exe.Arm.signal(channels, :, trials));
-        
-        FData.exe.Leg.alpha_band(channels,:,trials)  = doFilt(h_alpha, FData.exe.Leg.signal(channels, :, trials));
-        FData.exe.Leg.beta_band(channels,:, trials)  = doFilt(h_beta,  FData.exe.Leg.signal(channels, :, trials));
-        FData.exe.Leg.theta_band(channels,:, trials) = doFilt(h_theta, FData.exe.Leg.signal(channels, :, trials));
-        FData.exe.Leg.delta_band(channels,:, trials) = doFilt(h_delta, FData.exe.Leg.signal(channels, :, trials));
-        
-        FData.exe.Thumb.alpha_band(channels,:,trials)  = doFilt(h_alpha, FData.exe.Thumb.signal(channels, :, trials));
-        FData.exe.Thumb.beta_band(channels,:, trials)  = doFilt(h_beta,  FData.exe.Thumb.signal(channels, :, trials));
-        FData.exe.Thumb.theta_band(channels,:, trials) = doFilt(h_theta, FData.exe.Thumb.signal(channels, :, trials));
-        FData.exe.Thumb.delta_band(channels,:, trials) = doFilt(h_delta, FData.exe.Thumb.signal(channels, :, trials));
-        
-        FData.exe.Idle.alpha_band(channels,:,trials)  = doFilt(h_alpha, FData.exe.Idle.signal(channels, :, trials));
-        FData.exe.Idle.beta_band(channels,:, trials)  = doFilt(h_beta,  FData.exe.Idle.signal(channels, :, trials));
-        FData.exe.Idle.theta_band(channels,:, trials) = doFilt(h_theta, FData.exe.Idle.signal(channels, :, trials));
-        FData.exe.Idle.delta_band(channels,:, trials) = doFilt(h_delta, FData.exe.Idle.signal(channels, :, trials));
-        
-        
-        FData.img.Arm.alpha_band(channels,:,trials)  = doFilt(h_alpha, FData.img.Arm.signal(channels, :, trials));
-        FData.img.Arm.beta_band(channels,:, trials)  = doFilt(h_beta,  FData.img.Arm.signal(channels, :, trials));
-        FData.img.Arm.theta_band(channels,:, trials) = doFilt(h_theta, FData.img.Arm.signal(channels, :, trials));
-        FData.img.Arm.delta_band(channels,:, trials) = doFilt(h_delta, FData.img.Arm.signal(channels, :, trials));
-        
-        FData.img.Leg.alpha_band(channels,:,trials)  = doFilt(h_alpha, FData.img.Leg.signal(channels, :, trials));
-        FData.img.Leg.beta_band(channels,:, trials)  = doFilt(h_beta,  FData.img.Leg.signal(channels, :, trials));
-        FData.img.Leg.theta_band(channels,:, trials) = doFilt(h_theta, FData.img.Leg.signal(channels, :, trials));
-        FData.img.Leg.delta_band(channels,:, trials) = doFilt(h_delta, FData.img.Leg.signal(channels, :, trials));
-        
-        FData.img.Thumb.alpha_band(channels,:,trials)  = doFilt(h_alpha, FData.img.Thumb.signal(channels, :, trials));
-        FData.img.Thumb.beta_band(channels,:, trials)  = doFilt(h_beta,  FData.img.Thumb.signal(channels, :, trials));
-        FData.img.Thumb.theta_band(channels,:, trials) = doFilt(h_theta, FData.img.Thumb.signal(channels, :, trials));
-        FData.img.Thumb.delta_band(channels,:, trials) = doFilt(h_delta, FData.img.Thumb.signal(channels, :, trials));
-        
-    end
+
+for channels = 1 : 64
+    FData.exe.Arm.alpha_band(channels,:,:)  = doFilt(h_alpha, squeeze(FData.exe.Arm.signal(channels, :, :)));
+    FData.exe.Arm.beta_band(channels,:, :)  = doFilt(h_beta,  squeeze(FData.exe.Arm.signal(channels, :, :)));
+    FData.exe.Arm.theta_band(channels,:, :) = doFilt(h_theta, squeeze(FData.exe.Arm.signal(channels, :, :)));
+    FData.exe.Arm.delta_band(channels,:, :) = doFilt(h_delta, squeeze(FData.exe.Arm.signal(channels, :, :)));
+
+    FData.exe.Leg.alpha_band(channels,:,:)  = doFilt(h_alpha, squeeze(FData.exe.Leg.signal(channels, :, :)));
+    FData.exe.Leg.beta_band(channels,:, :)  = doFilt(h_beta,  squeeze(FData.exe.Leg.signal(channels, :, :)));
+    FData.exe.Leg.theta_band(channels,:, :) = doFilt(h_theta, squeeze(FData.exe.Leg.signal(channels, :, :)));
+    FData.exe.Leg.delta_band(channels,:, :) = doFilt(h_delta, squeeze(FData.exe.Leg.signal(channels, :, :)));
+
+    FData.exe.Thumb.alpha_band(channels,:,:)  = doFilt(h_alpha, squeeze(FData.exe.Thumb.signal(channels, :, :)));
+    FData.exe.Thumb.beta_band(channels,:, :)  = doFilt(h_beta,  squeeze(FData.exe.Thumb.signal(channels, :, :)));
+    FData.exe.Thumb.theta_band(channels,:, :) = doFilt(h_theta, squeeze(FData.exe.Thumb.signal(channels, :, :)));
+    FData.exe.Thumb.delta_band(channels,:, :) = doFilt(h_delta, squeeze(FData.exe.Thumb.signal(channels, :, :)));
+
+    FData.exe.Idle.alpha_band(channels,:,:)  = doFilt(h_alpha, squeeze(FData.exe.Idle.signal(channels, :, :)));
+    FData.exe.Idle.beta_band(channels,:, :)  = doFilt(h_beta,  squeeze(FData.exe.Idle.signal(channels, :, :)));
+    FData.exe.Idle.theta_band(channels,:, :) = doFilt(h_theta, squeeze(FData.exe.Idle.signal(channels, :, :)));
+    FData.exe.Idle.delta_band(channels,:, :) = doFilt(h_delta, squeeze(FData.exe.Idle.signal(channels, :, :)));        
+    
+    FData.exe.test.alpha_band(channels,:,:)  = doFilt(h_alpha, squeeze(FData.exe.test.signal(channels, :, :)));
+    FData.exe.test.beta_band(channels,:, :)  = doFilt(h_beta,  squeeze(FData.exe.test.signal(channels, :, :)));
+    FData.exe.test.theta_band(channels,:, :) = doFilt(h_theta, squeeze(FData.exe.test.signal(channels, :, :)));
+    FData.exe.test.delta_band(channels,:, :) = doFilt(h_delta, squeeze(FData.exe.test.signal(channels, :, :)));        
 end
 
+%%
 for trials = 1 : Nexe
     for channels = 1 : 64
         FData.exe.test.alpha_band(channels,:, trials) = doFilt(h_alpha, FData.exe.test.signal(channels, :, trials));

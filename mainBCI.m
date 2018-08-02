@@ -84,7 +84,7 @@ FData.exe.Arm.RMS    =  squeeze(rms(FData.exe.Arm.signal,2));
 FData.exe.Leg.RMS    =  squeeze(rms(FData.exe.Leg.signal,2));
 FData.exe.Idle.RMS   =  squeeze(rms(FData.exe.Idle.signal,2));
 FData.exe.Thumb.RMS  =  squeeze(rms(FData.exe.Thumb.signal,2));
-FData.exe.test.skew   =  squeeze(rms(FData.exe.test.signal,2));
+FData.exe.test.RMS   =  squeeze(rms(FData.exe.test.signal,2));
 
 
 %% Mean Freq
@@ -94,15 +94,17 @@ for channel = 1 : 63
     FData.exe.Leg.meanFreq(channel,:)    =  meanfreq(squeeze(FData.exe.Leg.signal(channel,:,:)), fs);
     FData.exe.Idle.meanFreq(channel,:)   =  meanfreq(squeeze(FData.exe.Idle.signal(channel,:,:)), fs);
     FData.exe.Thumb.meanFreq(channel,:)  =  meanfreq(squeeze(FData.exe.Thumb.signal(channel,:,:)), fs);
+    FData.exe.test.meanFreq(channel, :)  =  meanfreq(squeeze(FData.exe.test.signal(channel, :, :)), fs);
 end
 
-%%
+%% Med Freq
 
-
-for trials = 1 : Nexe
-    for channels = 1 : 63
-        FData.exe.test.meanFreq(channels, trials)  =  meanfreq(FData.exe.test.signal(channels, :, trials), 120);
-    end
+for channel = 1 : 63
+    FData.exe.Arm.medFreq(channel,:)    =  medfreq(squeeze(FData.exe.Arm.signal(channel,:,:)), fs);
+    FData.exe.Leg.medFreq(channel,:)    =  medfreq(squeeze(FData.exe.Leg.signal(channel,:,:)), fs);
+    FData.exe.Idle.medFreq(channel,:)   =  medfreq(squeeze(FData.exe.Idle.signal(channel,:,:)), fs);
+    FData.exe.Thumb.medFreq(channel,:)  =  medfreq(squeeze(FData.exe.Thumb.signal(channel,:,:)), fs);
+    FData.exe.test.medFreq(channel, :)  =  medfreq(squeeze(FData.exe.test.signal(channel, :, :)), fs);
 end
 
 %% Mode Freq
@@ -168,32 +170,6 @@ end
 clear Y f L P1 P2 I
 
 
-%% Median Freq
-
-for trials = 1 : 20
-    for channels = 1 : 64
-        FData.exe.Arm.medFreq  (channels, trials)  =  medfreq(FData.exe.Arm.signal(channels, :, trials), 120);
-        FData.exe.Leg.medFreq  (channels, trials)  =  medfreq(FData.exe.Leg.signal(channels, :, trials), 120);
-        FData.exe.Idle.medFreq (channels, trials)  =  medfreq(FData.exe.Idle.signal(channels, :, trials), 120);
-        FData.exe.Thumb.medFreq(channels, trials)  =  medfreq(FData.exe.Thumb.signal(channels, :, trials), 120);
-        
-        FData.img.Arm.medFreq  (channels, trials)  =  medfreq(FData.img.Arm.signal(channels, :, trials), 120);
-        FData.img.Leg.medFreq  (channels, trials)  =  medfreq(FData.img.Leg.signal(channels, :, trials), 120);
-        FData.img.Thumb.medFreq(channels, trials)  =  medfreq(FData.img.Thumb.signal(channels, :, trials), 120);
-    end
-end
-for trials = 1 : Nexe
-    for channels = 1 : 64
-        FData.exe.test.medFreq(channels, trials)  =  medfreq(FData.exe.test.signal(channels, :, trials), 120);
-    end
-end
-
-
-for trials = 1 : Nimg
-    for channels = 1 : 64
-        FData.img.test.medFreq(channels, trials)  =  medfreq(FData.img.test.signal(channels, :, trials), 120);
-    end
-end
 %% Sine Transform
 for trials = 1 : 20
     for channels = 1 : 64

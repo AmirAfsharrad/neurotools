@@ -123,7 +123,7 @@ end
 for channel = 1 : 63
     FData.exe.Arm.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Arm.signal(channel, :, :)));
     FData.exe.Leg.DCT  (channel, :, :)  =  dct(squeeze(FData.exe.Leg.signal(channel, :, :)));
-    FData.exe.Idle.DST (channel, :, :)  =  dct(squeeze(FData.exe.Idle.signal(channel, :, :)));
+    FData.exe.Idle.DCT (channel, :, :)  =  dct(squeeze(FData.exe.Idle.signal(channel, :, :)));
     FData.exe.Thumb.DCT(channel, :, :)  =  dct(squeeze(FData.exe.Thumb.signal(channel, :, :)));
     FData.exe.test.DCT (channel, :, :)  =  dct(squeeze(FData.exe.test.signal(channel, :, :)));
 end
@@ -218,37 +218,39 @@ end
 %% Common Spatial Patterns
 
 FData.exe.covMat(1, :, :) = cov(mean(FData.exe.Arm.alpha_band + FData.exe.Arm.beta_band, 3)');
-FData.exe.covMat(2, :, :) = cov(mean(FData.exe.Arm.alpha_band + FData.exe.Arm.beta_band, 3)');
-FData.exe.covMat(3, :, :) = cov(mean(FData.exe.Arm.alpha_band + FData.exe.Arm.beta_band, 3)');
-FData.exe.covMat(4, :, :) = cov(mean(FData.exe.Arm.alpha_band + FData.exe.Arm.beta_band, 3)');
+FData.exe.covMat(2, :, :) = cov(mean(FData.exe.Leg.alpha_band + FData.exe.Leg.beta_band, 3)');
+FData.exe.covMat(3, :, :) = cov(mean(FData.exe.Idle.alpha_band + FData.exe.Idle.beta_band, 3)');
+FData.exe.covMat(4, :, :) = cov(mean(FData.exe.Thumb.alpha_band + FData.exe.Thumb.beta_band, 3)');
 
 spatialFilter_EXE = MulticlassCSP(squeeze(FData.exe.covMat), 2);
 
-
 %%
-for trials = 1 : 20
+for trials = 1 : s_Arm(3)
     FData.exe.Arm.CSP1(:, trials)    = squeeze(spatialFilter_EXE(1,:))*squeeze(FData.exe.Arm.signal(:,:,trials));
     FData.exe.Arm.CSP2(:, trials)    = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.exe.Arm.signal(:,:,trials));
+end    
+for trials = 1 : s_Leg(3)
     FData.exe.Leg.CSP1(:, trials)    = squeeze(spatialFilter_EXE(1,:))*squeeze(FData.exe.Leg.signal(:,:,trials));
     FData.exe.Leg.CSP2(:, trials)    = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.exe.Leg.signal(:,:,trials));
+end
+for trials = 1 : s_Idle(3)
     FData.exe.Idle.CSP1(:, trials)   = squeeze(spatialFilter_EXE(1,:))*squeeze(FData.exe.Idle.signal(:,:,trials));
     FData.exe.Idle.CSP2(:, trials)   = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.exe.Idle.signal(:,:,trials));
+end    
+for trials = 1 : s_Thumb(3)
     FData.exe.Thumb.CSP1(:, trials)  = squeeze(spatialFilter_EXE(1,:))*squeeze(FData.exe.Thumb.signal(:,:,trials));
     FData.exe.Thumb.CSP2(:, trials)  = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.exe.Thumb.signal(:,:,trials));
 end
 
-for trials = 1 : Nexe
-    for channels = 1 : 64
-        FData.exe.test.CSP1(:, trials)  = squeeze(spatialFilter_EXE(1,:))*squeeze(FData.exe.test.signal(:,:,trials));
-        FData.exe.test.CSP2(:, trials)  = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.exe.test.signal(:,:,trials));
-    end
+for trials = 1 : s_Test(3)
+    FData.exe.test.CSP1(:, trials)  = squeeze(spatialFilter_EXE(1,:))*squeeze(FData.exe.test.signal(:,:,trials));
+    FData.exe.test.CSP2(:, trials)  = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.exe.test.signal(:,:,trials));
 end
 
 %% Checking CSP
 
 figure
-hold on
-plot(FData.exe.Arm.CSP1(:,1))
+plot(FData.exe.Arm.CSP1(:,1)')
 plot(FData.exe.Arm.signal(1:3,:,1)')
 xlabel('t');
 legend('CSP-Filtered Signal','Original Signal Channel 01',...
@@ -256,368 +258,338 @@ legend('CSP-Filtered Signal','Original Signal Channel 01',...
 
 figure
 hold on
-plotFFT(FData.exe.Arm.CSP1(:,10),120, 0, 60, '', '|fft|', 10)
-plotFFT(spatialFilter_EXE(1,:)*FData.exe.Arm.mainbands(:,:,10), 120, 0, 60,'','|fft|',10)
-plotFFT(FData.exe.Arm.signal(1,:,10), 120, 0, 60, '','|fft|',10)
+plotFFT(FData.exe.Arm.CSP1(:,10),fs, 0, 600, '', '|fft|', 10)
+plotFFT(FData.exe.Arm.signal(1,:,10), fs, 0, 600, '','|fft|',10)
 legend('a Sample CSP','a Sample CSP(\alpha and \beta)','Original Signal')
 
-%% CSP Band Energy
-
-for trials = 1 : 20
-    FData.exe.Arm.CSP1_alpha  (trials) = bandpower(FData.exe.Arm.CSP1(:,trials),120,[7.5,13.5]);
-    FData.exe.Leg.CSP1_alpha (trials)  = bandpower(FData.exe.Leg.CSP1(:,trials),120,[7.5,13.5]);
-    FData.exe.Thumb.CSP1_alpha(trials) = bandpower(FData.exe.Thumb.CSP1(:,trials),120,[7.5,13.5]);
-    FData.exe.Idle.CSP1_alpha (trials) = bandpower(FData.exe.Idle.CSP1(:,trials),120,[7.5,13.5]);
-    
-    FData.exe.Arm.CSP2_alpha(trials)   = bandpower(FData.exe.Arm.CSP2(:,trials),120,[7.5,13.5]);
-    FData.exe.Leg.CSP2_alpha(trials)   = bandpower(FData.exe.Leg.CSP2(:,trials),120,[7.5,13.5]);
-    FData.exe.Thumb.CSP2_alpha(trials) = bandpower(FData.exe.Thumb.CSP2(:,trials),120,[7.5,13.5]);
-    FData.exe.Idle.CSP2_alpha(trials)  = bandpower(FData.exe.Idle.CSP2(:,trials),120,[7.5,13.5]);
-    
-    
-    FData.exe.Arm.CSP1_beta  (trials) = bandpower(FData.exe.Arm.CSP1(:,trials),120,[13.5,20]);
-    FData.exe.Leg.CSP1_beta (trials)  = bandpower(FData.exe.Leg.CSP1(:,trials),120,[13.5,20]);
-    FData.exe.Thumb.CSP1_beta(trials) = bandpower(FData.exe.Thumb.CSP1(:,trials),120,[13.5,20]);
-    FData.exe.Idle.CSP1_beta (trials) = bandpower(FData.exe.Idle.CSP1(:,trials),120,[13.5,20]);
-    
-    FData.exe.Arm.CSP2_beta(trials)   = bandpower(FData.exe.Arm.CSP2(:,trials),120,[13.5,20]);
-    FData.exe.Leg.CSP2_beta(trials)   = bandpower(FData.exe.Leg.CSP2(:,trials),120,[13.5,20]);
-    FData.exe.Thumb.CSP2_beta(trials) = bandpower(FData.exe.Thumb.CSP2(:,trials),120,[13.5,20]);
-    FData.exe.Idle.CSP2_beta(trials)  = bandpower(FData.exe.Idle.CSP2(:,trials),120,[13.5,20]);
-
-
-
-    FData.img.Arm.CSP1_beta  (trials) = bandpower(FData.img.Arm.CSP1(:,trials),120,[13.5,20]);
-    FData.img.Leg.CSP1_beta (trials)  = bandpower(FData.img.Leg.CSP1(:,trials),120,[13.5,20]);
-    FData.img.Thumb.CSP1_beta(trials) = bandpower(FData.img.Thumb.CSP1(:,trials),120,[13.5,20]);
-
-    FData.img.Arm.CSP2_beta(trials)   = bandpower(FData.img.Arm.CSP2(:,trials),120,[13.5,20]);
-    FData.img.Leg.CSP2_beta(trials)   = bandpower(FData.img.Leg.CSP2(:,trials),120,[13.5,20]);
-    FData.img.Thumb.CSP2_beta(trials) = bandpower(FData.img.Thumb.CSP2(:,trials),120,[13.5,20]);
-
-    
-    FData.img.Arm.CSP1_alpha  (trials) = bandpower(FData.img.Arm.CSP1(:,trials),120,[7.5,13.5]);
-    FData.img.Leg.CSP1_alpha (trials)  = bandpower(FData.img.Leg.CSP1(:,trials),120,[7.5,13.5]);
-    FData.img.Thumb.CSP1_alpha(trials) = bandpower(FData.img.Thumb.CSP1(:,trials),120,[7.5,13.5]);
-
-    FData.img.Arm.CSP2_alpha(trials)   = bandpower(FData.img.Arm.CSP2(:,trials),120,[7.5,13.5]);
-    FData.img.Leg.CSP2_alpha(trials)   = bandpower(FData.img.Leg.CSP2(:,trials),120,[7.5,13.5]);
-    FData.img.Thumb.CSP2_alpha(trials) = bandpower(FData.img.Thumb.CSP2(:,trials),120,[7.5,13.5]);    
+%% Feature Matrix as a Whole
+Feature = [];
+label = [];
+for i = 1 : s_Arm(3)
+    Feature(i,:) = [reshape(FData.exe.Arm.signal(:,:,i),1,[]) ...
+                    FData.exe.Arm.var(:,i)' FData.exe.Arm.skew(:,i)' ...
+                    FData.exe.Arm.RMS(:,i)' FData.exe.Arm.meanFreq(:,i)' ...
+                    FData.exe.Arm.medFreq(:,i)'...
+                    reshape(FData.exe.Arm.DST(:,:,i),1,[]) ...
+                    reshape(FData.exe.Arm.DCT(:,:,i),1,[]) ...
+                    reshape(FData.exe.Arm.alpha_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Arm.beta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Arm.theta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Arm.delta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Arm.DST(:,:,i),1,[]) ...
+                    FData.exe.Arm.alphaEnergy(:,i)'...
+                    FData.exe.Arm.betaEnergy(:,i)'...
+                    FData.exe.Arm.thetaEnergy(:,i)'...
+                    FData.exe.Arm.deltaEnergy(:,i)'...
+                    reshape(FData.exe.Arm.STFT(:,:,:,i),1,[]) ...
+                    FData.exe.Arm.CSP1(:,i)' ...
+                    FData.exe.Arm.CSP2(:,i)' ...
+                    ];
+    label(i) = 1;
     
 end
 
-for trials = 1 : Nexe
-	FData.exe.test.CSP1_alpha  (trials) = bandpower(FData.exe.test.CSP1(:,trials),120,[7.5,13.5]);
-    FData.exe.test.CSP2_alpha (trials)  = bandpower(FData.exe.test.CSP2(:,trials),120,[7.5,13.5]);
-	FData.exe.test.CSP1_beta  (trials) = bandpower(FData.exe.test.CSP1(:,trials),120,[13.5,20]);
-    FData.exe.test.CSP2_beta (trials)  = bandpower(FData.exe.test.CSP2(:,trials),120,[13.5,20]);
-end
-
-
-for trials = 1 : Nimg
-	FData.img.test.CSP1_alpha  (trials) = bandpower(FData.img.test.CSP1(:,trials),120,[7.5,13.5]);
-    FData.img.test.CSP2_alpha (trials)  = bandpower(FData.img.test.CSP2(:,trials),120,[7.5,13.5]);
-	FData.img.test.CSP1_beta  (trials) = bandpower(FData.img.test.CSP1(:,trials),120,[13.5,20]);
-    FData.img.test.CSP2_beta (trials)  = bandpower(FData.img.test.CSP2(:,trials),120,[13.5,20]);
-end
-
-
-%% CSP Mean Freq
-
-for trials = 1 : 20
-    FData.exe.Arm.CSP1_meanFreq  (trials)  =  meanfreq(FData.exe.Arm.CSP1(:, trials), 120);
-    FData.exe.Leg.CSP1_meanFreq  (trials)  =  meanfreq(FData.exe.Leg.CSP1(:, trials), 120);
-    FData.exe.Idle.CSP1_meanFreq (trials)  =  meanfreq(FData.exe.Idle.CSP1(:, trials), 120);
-    FData.exe.Thumb.CSP1_meanFreq(trials)  =  meanfreq(FData.exe.Thumb.CSP1(:, trials), 120);
-
-    FData.img.Arm.CSP1_meanFreq  (trials)  =  meanfreq(FData.img.Arm.CSP1(:, trials), 120);
-    FData.img.Leg.CSP1_meanFreq  (trials)  =  meanfreq(FData.img.Leg.CSP1(:, trials), 120);
-    FData.img.Thumb.CSP1_meanFreq(trials)  =  meanfreq(FData.img.Thumb.CSP1(:, trials), 120);
- 
+for i = 1 : s_Thumb(3)
+    Feature(i+s_Arm(3),:) = ...
+                    [reshape(FData.exe.Thumb.signal(:,:,i),1,[]) ...
+                    FData.exe.Thumb.var(:,i)' FData.exe.Thumb.skew(:,i)' ...
+                    FData.exe.Thumb.RMS(:,i)' FData.exe.Thumb.meanFreq(:,i)' ...
+                    FData.exe.Thumb.medFreq(:,i)'...
+                    reshape(FData.exe.Thumb.DST(:,:,i),1,[]) ...
+                    reshape(FData.exe.Thumb.DCT(:,:,i),1,[]) ...
+                    reshape(FData.exe.Thumb.alpha_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Thumb.beta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Thumb.theta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Thumb.delta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Thumb.DST(:,:,i),1,[]) ...
+                    FData.exe.Thumb.alphaEnergy(:,i)'...
+                    FData.exe.Thumb.betaEnergy(:,i)'...
+                    FData.exe.Thumb.thetaEnergy(:,i)'...
+                    FData.exe.Thumb.deltaEnergy(:,i)'...
+                    reshape(FData.exe.Thumb.STFT(:,:,:,i),1,[]) ...
+                    FData.exe.Thumb.CSP1(:,i)' ...
+                    FData.exe.Thumb.CSP2(:,i)' ...
+                    ];
+    label(i+s_Arm(3)) = 2;
     
-    FData.exe.Arm.CSP2_meanFreq  (trials)  =  meanfreq(FData.exe.Arm.CSP2(:, trials), 120);
-    FData.exe.Leg.CSP2_meanFreq  (trials)  =  meanfreq(FData.exe.Leg.CSP2(:, trials), 120);
-    FData.exe.Idle.CSP2_meanFreq (trials)  =  meanfreq(FData.exe.Idle.CSP2(:, trials), 120);
-    FData.exe.Thumb.CSP2_meanFreq(trials)  =  meanfreq(FData.exe.Thumb.CSP2(:, trials), 120);
-
-    FData.img.Arm.CSP2_meanFreq  (trials)  =  meanfreq(FData.img.Arm.CSP2(:, trials), 120);
-    FData.img.Leg.CSP2_meanFreq  (trials)  =  meanfreq(FData.img.Leg.CSP2(:, trials), 120);
-    FData.img.Thumb.CSP2_meanFreq(trials)  =  meanfreq(FData.img.Thumb.CSP2(:, trials), 120);
 end
 
-for trials = 1 : Nexe
-    FData.exe.test.CSP1_meanFreq  (trials)  =  meanfreq(FData.exe.test.CSP1(:, trials), 120);
-	FData.exe.test.CSP2_meanFreq  (trials)  =  meanfreq(FData.exe.test.CSP2(:, trials), 120);
-end
-
-
-for trials = 1 : Nimg
-    FData.img.test.CSP1_meanFreq  (trials)  =  meanfreq(FData.img.test.CSP1(:, trials), 120);
-	FData.img.test.CSP2_meanFreq  (trials)  =  meanfreq(FData.img.test.CSP2(:, trials), 120);
-end
-
-%% CSP Median Freq
-
-for trials = 1 : 20
-    FData.exe.Arm.CSP1_medFreq  (trials)  =  medfreq(FData.exe.Arm.CSP1(:, trials), 120);
-    FData.exe.Leg.CSP1_medFreq  (trials)  =  medfreq(FData.exe.Leg.CSP1(:, trials), 120);
-    FData.exe.Idle.CSP1_medFreq (trials)  =  medfreq(FData.exe.Idle.CSP1(:, trials), 120);
-    FData.exe.Thumb.CSP1_medFreq(trials)  =  medfreq(FData.exe.Thumb.CSP1(:, trials), 120);
-
-    FData.img.Arm.CSP1_medFreq  (trials)  =  medfreq(FData.img.Arm.CSP1(:, trials), 120);
-    FData.img.Leg.CSP1_medFreq  (trials)  =  medfreq(FData.img.Leg.CSP1(:, trials), 120);
-    FData.img.Thumb.CSP1_medFreq(trials)  =  medfreq(FData.img.Thumb.CSP1(:, trials), 120);
- 
+for i = 1 : s_Leg(3)
+    Feature(i+s_Arm(3)+s_Thumb(3),:) = ...
+                    [reshape(FData.exe.Leg.signal(:,:,i),1,[]) ...
+                    FData.exe.Leg.var(:,i)' FData.exe.Leg.skew(:,i)' ...
+                    FData.exe.Leg.RMS(:,i)' FData.exe.Leg.meanFreq(:,i)' ...
+                    FData.exe.Leg.medFreq(:,i)'...
+                    reshape(FData.exe.Leg.DST(:,:,i),1,[]) ...
+                    reshape(FData.exe.Leg.DCT(:,:,i),1,[]) ...
+                    reshape(FData.exe.Leg.alpha_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Leg.beta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Leg.theta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Leg.delta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Leg.DST(:,:,i),1,[]) ...
+                    FData.exe.Leg.alphaEnergy(:,i)'...
+                    FData.exe.Leg.betaEnergy(:,i)'...
+                    FData.exe.Leg.thetaEnergy(:,i)'...
+                    FData.exe.Leg.deltaEnergy(:,i)'...
+                    reshape(FData.exe.Leg.STFT(:,:,:,i),1,[]) ...
+                    FData.exe.Leg.CSP1(:,i)' ...
+                    FData.exe.Leg.CSP2(:,i)' ...
+                    ];
+    label(i+s_Arm(3)+s_Thumb(3)) = 3;
     
-    FData.exe.Arm.CSP2_medFreq  (trials)  =  medfreq(FData.exe.Arm.CSP2(:, trials), 120);
-    FData.exe.Leg.CSP2_medFreq  (trials)  =  medfreq(FData.exe.Leg.CSP2(:, trials), 120);
-    FData.exe.Idle.CSP2_medFreq (trials)  =  medfreq(FData.exe.Idle.CSP2(:, trials), 120);
-    FData.exe.Thumb.CSP2_medFreq(trials)  =  medfreq(FData.exe.Thumb.CSP2(:, trials), 120);
-
-    FData.img.Arm.CSP2_medFreq  (trials)  =  medfreq(FData.img.Arm.CSP2(:, trials), 120);
-    FData.img.Leg.CSP2_medFreq  (trials)  =  medfreq(FData.img.Leg.CSP2(:, trials), 120);
-    FData.img.Thumb.CSP2_medFreq(trials)  =  medfreq(FData.img.Thumb.CSP2(:, trials), 120);
-end
-
-for trials = 1 : Nexe
-    FData.exe.test.CSP1_medFreq  (trials)  =  medfreq(FData.exe.test.CSP1(:, trials), 120);
-	FData.exe.test.CSP2_medFreq  (trials)  =  medfreq(FData.exe.test.CSP2(:, trials), 120);
 end
 
 
-for trials = 1 : Nimg
-    FData.img.test.CSP1_medFreq  (trials)  =  medfreq(FData.img.test.CSP1(:, trials), 120);
-	FData.img.test.CSP2_medFreq  (trials)  =  medfreq(FData.img.test.CSP2(:, trials), 120);
+for i = 1 : s_Idle(3)
+    Feature(i+s_Arm(3)+s_Thumb(3)+s_Leg(3),:) =...
+                    [reshape(FData.exe.Idle.signal(:,:,i),1,[]) ...
+                    FData.exe.Idle.var(:,i)' FData.exe.Idle.skew(:,i)' ...
+                    FData.exe.Idle.RMS(:,i)' FData.exe.Idle.meanFreq(:,i)' ...
+                    FData.exe.Idle.medFreq(:,i)'...
+                    reshape(FData.exe.Idle.DST(:,:,i),1,[]) ...
+                    reshape(FData.exe.Idle.DCT(:,:,i),1,[]) ...
+                    reshape(FData.exe.Idle.alpha_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Idle.beta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Idle.theta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Idle.delta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.Idle.DST(:,:,i),1,[]) ...
+                    FData.exe.Idle.alphaEnergy(:,i)'...
+                    FData.exe.Idle.betaEnergy(:,i)'...
+                    FData.exe.Idle.thetaEnergy(:,i)'...
+                    FData.exe.Idle.deltaEnergy(:,i)'...
+                    reshape(FData.exe.Idle.STFT(:,:,:,i),1,[]) ...
+                    FData.exe.Idle.CSP1(:,i)' ...
+                    FData.exe.Idle.CSP2(:,i)' ...
+                    ];
+    label(i+s_Arm(3)+s_Thumb(3)+s_Leg(3)) = 4;
+    
 end
-%% Wavelet
-% for trials = 1 : 20
-%     for channels = 1 : 64
-%         
-%         FData.exe.Arm.DWT(channels, trials) = dwt(FData.exe.Arm.alpha_band(channels, :, trials));
-%         FData.exe.Leg.DWT(channels, trials) = dwt(FData.exe.Arm.alpha_band(channels, :, trials));
-%         FData.exe.Thumb.DWT(channels, trials) = dwt(FData.exe.Arm.alpha_band(channels, :, trials));
-%         FData.exe.Idle.DWT(channels, trials) = dwt(FData.exe.Arm.alpha_band(channels, :, trials));
-%         
-%     end
+%%
+label = label';
+
+%% ANOVA
+pVal = anova1(Feature', label);
+
+%%
+% %%
+% Feature = [
+% 
+% %% JValue Matrix 
+% 
+% % J_Index s are not correct :(
+% 
+% clear J_EXE J_IMG
+% [J_EXE(:,1),~] = Jvalue(FData.exe.Arm, FData.exe.Leg);
+% [J_EXE(:,2),~] = Jvalue(FData.exe.Arm, FData.exe.Thumb);
+% [J_EXE(:,3),~] =  Jvalue(FData.exe.Arm, FData.exe.Idle);
+% [J_EXE(:,4),~] = Jvalue(FData.exe.Leg, FData.exe.Thumb);
+% [J_EXE(:,5),~] = Jvalue(FData.exe.Leg, FData.exe.Idle);
+% [J_EXE(:,6),J_EXE_Index,Feat] = Jvalue(FData.exe.Thumb, FData.exe.Idle);
+% 
+% 
+% [J_IMG(:,1),~] = Jvalue(FData.img.Arm, FData.img.Leg);
+% [J_IMG(:,2),~] = Jvalue(FData.img.Arm, FData.img.Thumb);
+% [J_IMG(:,3), J_IMG_Index] = Jvalue(FData.img.Leg, FData.img.Thumb);
+% 
+% %% 5 Fold Cross Validation
+% score = [];
+% num = [];
+% j = 0;
+% for i = 1 : 10 : 1000
+%     j = j + 1;
+%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
+%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
+%     num(j) = i;
 % end
-
-
-%% JValue Matrix 
-
-% J_Index s are not correct :(
-
-clear J_EXE J_IMG
-[J_EXE(:,1),~] = Jvalue(FData.exe.Arm, FData.exe.Leg);
-[J_EXE(:,2),~] = Jvalue(FData.exe.Arm, FData.exe.Thumb);
-[J_EXE(:,3),~] =  Jvalue(FData.exe.Arm, FData.exe.Idle);
-[J_EXE(:,4),~] = Jvalue(FData.exe.Leg, FData.exe.Thumb);
-[J_EXE(:,5),~] = Jvalue(FData.exe.Leg, FData.exe.Idle);
-[J_EXE(:,6),J_EXE_Index,Feat] = Jvalue(FData.exe.Thumb, FData.exe.Idle);
-
-
-[J_IMG(:,1),~] = Jvalue(FData.img.Arm, FData.img.Leg);
-[J_IMG(:,2),~] = Jvalue(FData.img.Arm, FData.img.Thumb);
-[J_IMG(:,3), J_IMG_Index] = Jvalue(FData.img.Leg, FData.img.Thumb);
-
-%% 5 Fold Cross Validation
-score = [];
-num = [];
-j = 0;
-for i = 1 : 10 : 1000
-    j = j + 1;
-    [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
-    score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-    num(j) = i;
-end
-for i = 1001 : 100 : 10000
-    j = j + 1;
-    [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
-    score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-    num(j) = i;
-end
-for i = 10001 : 2000 : 20000
-    j = j + 1;
-    [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',100);
-    score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-    num(j) = i;
-end
-
-figure
-semilogx(num, score);
-title('5-Fold Cross Validation Score - Motor Execution');
-ylabel('% of Correct Classification');
-xlabel('Number of Features');
-
-%%
-score = [];
-num = [];
-j = 0;
-for i = 1 : 10 : 1000
-    j = j + 1;
-    [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
-    score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-    num(j) = i;
-end
-for i = 1001 : 100 : 10000
-    j = j + 1;
-    [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
-    score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-    num(j) = i;
-end
-for i = 10001 : 2000 : 20000
-    j = j + 1;
-    [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',100);
-    score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-    num(j) = i;
-end
-%%
-figure
-semilogx(num, score);
-title('5-Fold Cross Validation Score - Motor Imagery');
-ylabel('% of Correct Classification');
-xlabel('Number of Features');
-
-
-%% A K-Fold like algorithm
-DataSet = [];
-labels = [];
-[DataSet, labels, ~] = Feature_Selector(FData,'exe',100);
- 
-for i = 1 : 400
-    I = randperm(80);
-    TestIndex    = I(1:16);
-    TrainIndex   = I(17:80);        
-    result = MultiSVM(DataSet(TrainIndex,:), labels(TrainIndex), DataSet(TestIndex,:));
-    correct(i) = sum(labels(TestIndex) == result')/length(result)*100;
-end
-correct = mean(correct)
-
-%%
-
-[TrainSet_exe, labels_exe, feature_list_exe, TestSet_exe] = Feature_Selector(FData, 'exe', 100);
-sub11_exe = MultiSVM(TrainSet_exe,labels_exe, TestSet_exe);
-
-[TrainSet_img, labels_img, feature_list_img, TestSet_img] = Feature_Selector(FData, 'img', 100);
-sub11_img = MultiSVM(TrainSet_img,labels_img, TestSet_img);
-
-%% Performing PCA on Features - EXE
-
-[TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',1000);
-[coeff,score,latent] = pca(TrainSet);
-figure
-stem(cumsum(latent)./sum(latent))
-ylabel('Cumm. Sum of Cov Eigenvalue;');
-xlabel('Eigenvector number');
-
-Y = TrainSet* coeff;
-figure
-plot3(Y(1:20,1), Y(1:20,2), Y(1:20,3),'.');
-hold on
-plot3(Y(21:40,1), Y(21:40,2), Y(21:40,3),'.');
-plot3(Y(41:60,1), Y(41:60,2), Y(41:60,3),'.');
-plot3(Y(61:80,1), Y(61:80,2), Y(61:80,3),'.');
-legend('Arm', 'Leg', 'Thumb', 'Idle');
-xlabel('PCA 1')
-ylabel('PCA 2')
-zlabel('PCA 3')
-title('PCA on exe Data');
-
-labels(1:20)  = 1; labels(21:40) = 2;
-labels(41:60) = 3; labels(61:80) = 4;
-correct_mean = [];
-correct = [];
-correct_var = [];
-
-for N = 1 : 79
-    for i = 1 : 10
-        I = randperm(80);
-        TestIndex    = I(1:16);
-        TrainIndex   = I(17:80);        
-        result = MultiSVM(Y(TrainIndex,1:N), labels(TrainIndex), Y(TestIndex,1:N));
-        correct(i) = sum(labels(TestIndex) == result')/length(result)*100;
-    end
-    correct_mean(N) = mean(correct);
-    correct_var(N) = var(correct);
-end
-
-%%
-figure
-hold on
-plot(correct_mean + sqrt(correct_var))
-plot(correct_mean)
-plot(correct_mean - sqrt(correct_var))
-
-ylabel('Correct Percentage');
-xlabel('Number of eigenvalues');
-legend('Mean - STD','Mean', 'Mean + STD');
-title('PCA Based Classification Cross Validation Results - EXE');
-%% Performing PCA on Features - Img
-
-[TrainSet, labels, feature_list2] = Feature_Selector(FData,'img',1000);
-[coeff,score,latent] = pca(TrainSet);
-figure
-stem(cumsum(latent)./sum(latent))
-ylabel('Cumm. Sum of Cov Eigenvalue;');
-xlabel('Eigenvector number');
-
-Y = TrainSet* coeff;
-figure
-plot3(Y(1:20,1), Y(1:20,2), Y(1:20,3),'.');
-hold on
-plot3(Y(21:40,1), Y(21:40,2), Y(21:40,3),'.');
-plot3(Y(41:60,1), Y(41:60,2), Y(41:60,3),'.');
-legend('Arm', 'Leg', 'Thumb');
-xlabel('PCA 1')
-ylabel('PCA 2')
-zlabel('PCA 3')
-title('PCA on img Data');
-
-labels(1:20)  = 1; labels(21:40) = 2;
-labels(41:60) = 3; 
-correct_mean = [];
-correct = [];
-correct_var = [];
-
-for N = 1 : 59
-    for i = 1 : 10
-        I = randperm(60);
-        TestIndex    = I(1:12);
-        TrainIndex   = I(13:60);        
-        result = MultiSVM(Y(TrainIndex,1:N), labels(TrainIndex), Y(TestIndex,1:N));
-        correct(i) = sum(labels(TestIndex) == result')/length(result)*100;
-    end
-    correct_mean(N) = mean(correct);
-    correct_var(N) = var(correct);
-end
-%%
-figure
-hold on
-plot(correct_mean + sqrt(correct_var))
-plot(correct_mean)
-plot(correct_mean - sqrt(correct_var))
-
-ylabel('Correct Percentage');
-xlabel('Number of eigenvalues');
-legend('Mean - STD','Mean', 'Mean + STD');
-title('PCA Based Classification Cross Validation Results - IMG');
-
-%% Classify Test
-Ytest = [];
-Ytrain = [];
-
-[TrainSet_img, labels_img, feature_list_img, TestSet_img] = Feature_Selector(FData, 'img', 100);
-[coeff,score,latent] = pca(TrainSet_img);
-Ytest  = TestSet_img* coeff;
-Ytrain = TrainSet_img* coeff;
-sub_img = MultiSVM(Ytrain(:,1:20), labels_img, Ytest(:,1:20));
-save('PCA_sub03_img', 'sub_img');
-%% Classify Test
-Ytest = [];
-Ytrain = [];
-
-[TrainSet_exe, labels_exe, feature_list_exe, TestSet_exe] = Feature_Selector(FData, 'exe', 100);
-[coeff,score,latent] = pca(TrainSet_exe);
-Ytest  = TestSet_exe* coeff;
-Ytrain = TrainSet_exe* coeff;
-sub_exe = MultiSVM(Ytrain(:,1:20), labels_exe, Ytest(:,1:20));
+% for i = 1001 : 100 : 10000
+%     j = j + 1;
+%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
+%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
+%     num(j) = i;
+% end
+% for i = 10001 : 2000 : 20000
+%     j = j + 1;
+%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',100);
+%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
+%     num(j) = i;
+% end
+% 
+% figure
+% semilogx(num, score);
+% title('5-Fold Cross Validation Score - Motor Execution');
+% ylabel('% of Correct Classification');
+% xlabel('Number of Features');
+% 
+% %%
+% score = [];
+% num = [];
+% j = 0;
+% for i = 1 : 10 : 1000
+%     j = j + 1;
+%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
+%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
+%     num(j) = i;
+% end
+% for i = 1001 : 100 : 10000
+%     j = j + 1;
+%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
+%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
+%     num(j) = i;
+% end
+% for i = 10001 : 2000 : 20000
+%     j = j + 1;
+%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',100);
+%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
+%     num(j) = i;
+% end
+% %%
+% figure
+% semilogx(num, score);
+% title('5-Fold Cross Validation Score - Motor Imagery');
+% ylabel('% of Correct Classification');
+% xlabel('Number of Features');
+% 
+% 
+% %% A K-Fold like algorithm
+% DataSet = [];
+% labels = [];
+% [DataSet, labels, ~] = Feature_Selector(FData,'exe',100);
+%  
+% for i = 1 : 400
+%     I = randperm(80);
+%     TestIndex    = I(1:16);
+%     TrainIndex   = I(17:80);        
+%     result = MultiSVM(DataSet(TrainIndex,:), labels(TrainIndex), DataSet(TestIndex,:));
+%     correct(i) = sum(labels(TestIndex) == result')/length(result)*100;
+% end
+% correct = mean(correct)
+% 
+% %%
+% 
+% [TrainSet_exe, labels_exe, feature_list_exe, TestSet_exe] = Feature_Selector(FData, 'exe', 100);
+% sub11_exe = MultiSVM(TrainSet_exe,labels_exe, TestSet_exe);
+% 
+% [TrainSet_img, labels_img, feature_list_img, TestSet_img] = Feature_Selector(FData, 'img', 100);
+% sub11_img = MultiSVM(TrainSet_img,labels_img, TestSet_img);
+% 
+% %% Performing PCA on Features - EXE
+% 
+% [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',1000);
+% [coeff,score,latent] = pca(TrainSet);
+% figure
+% stem(cumsum(latent)./sum(latent))
+% ylabel('Cumm. Sum of Cov Eigenvalue;');
+% xlabel('Eigenvector number');
+% 
+% Y = TrainSet* coeff;
+% figure
+% plot3(Y(1:20,1), Y(1:20,2), Y(1:20,3),'.');
+% hold on
+% plot3(Y(21:40,1), Y(21:40,2), Y(21:40,3),'.');
+% plot3(Y(41:60,1), Y(41:60,2), Y(41:60,3),'.');
+% plot3(Y(61:80,1), Y(61:80,2), Y(61:80,3),'.');
+% legend('Arm', 'Leg', 'Thumb', 'Idle');
+% xlabel('PCA 1')
+% ylabel('PCA 2')
+% zlabel('PCA 3')
+% title('PCA on exe Data');
+% 
+% labels(1:20)  = 1; labels(21:40) = 2;
+% labels(41:60) = 3; labels(61:80) = 4;
+% correct_mean = [];
+% correct = [];
+% correct_var = [];
+% 
+% for N = 1 : 79
+%     for i = 1 : 10
+%         I = randperm(80);
+%         TestIndex    = I(1:16);
+%         TrainIndex   = I(17:80);        
+%         result = MultiSVM(Y(TrainIndex,1:N), labels(TrainIndex), Y(TestIndex,1:N));
+%         correct(i) = sum(labels(TestIndex) == result')/length(result)*100;
+%     end
+%     correct_mean(N) = mean(correct);
+%     correct_var(N) = var(correct);
+% end
+% 
+% %%
+% figure
+% hold on
+% plot(correct_mean + sqrt(correct_var))
+% plot(correct_mean)
+% plot(correct_mean - sqrt(correct_var))
+% 
+% ylabel('Correct Percentage');
+% xlabel('Number of eigenvalues');
+% legend('Mean - STD','Mean', 'Mean + STD');
+% title('PCA Based Classification Cross Validation Results - EXE');
+% %% Performing PCA on Features - Img
+% 
+% [TrainSet, labels, feature_list2] = Feature_Selector(FData,'img',1000);
+% [coeff,score,latent] = pca(TrainSet);
+% figure
+% stem(cumsum(latent)./sum(latent))
+% ylabel('Cumm. Sum of Cov Eigenvalue;');
+% xlabel('Eigenvector number');
+% 
+% Y = TrainSet* coeff;
+% figure
+% plot3(Y(1:20,1), Y(1:20,2), Y(1:20,3),'.');
+% hold on
+% plot3(Y(21:40,1), Y(21:40,2), Y(21:40,3),'.');
+% plot3(Y(41:60,1), Y(41:60,2), Y(41:60,3),'.');
+% legend('Arm', 'Leg', 'Thumb');
+% xlabel('PCA 1')
+% ylabel('PCA 2')
+% zlabel('PCA 3')
+% title('PCA on img Data');
+% 
+% labels(1:20)  = 1; labels(21:40) = 2;
+% labels(41:60) = 3; 
+% correct_mean = [];
+% correct = [];
+% correct_var = [];
+% 
+% for N = 1 : 59
+%     for i = 1 : 10
+%         I = randperm(60);
+%         TestIndex    = I(1:12);
+%         TrainIndex   = I(13:60);        
+%         result = MultiSVM(Y(TrainIndex,1:N), labels(TrainIndex), Y(TestIndex,1:N));
+%         correct(i) = sum(labels(TestIndex) == result')/length(result)*100;
+%     end
+%     correct_mean(N) = mean(correct);
+%     correct_var(N) = var(correct);
+% end
+% %%
+% figure
+% hold on
+% plot(correct_mean + sqrt(correct_var))
+% plot(correct_mean)
+% plot(correct_mean - sqrt(correct_var))
+% 
+% ylabel('Correct Percentage');
+% xlabel('Number of eigenvalues');
+% legend('Mean - STD','Mean', 'Mean + STD');
+% title('PCA Based Classification Cross Validation Results - IMG');
+% 
+% %% Classify Test
+% Ytest = [];
+% Ytrain = [];
+% 
+% [TrainSet_img, labels_img, feature_list_img, TestSet_img] = Feature_Selector(FData, 'img', 100);
+% [coeff,score,latent] = pca(TrainSet_img);
+% Ytest  = TestSet_img* coeff;
+% Ytrain = TrainSet_img* coeff;
+% sub_img = MultiSVM(Ytrain(:,1:20), labels_img, Ytest(:,1:20));
+% save('PCA_sub03_img', 'sub_img');
+% %% Classify Test
+% Ytest = [];
+% Ytrain = [];
+% 
+% [TrainSet_exe, labels_exe, feature_list_exe, TestSet_exe] = Feature_Selector(FData, 'exe', 100);
+% [coeff,score,latent] = pca(TrainSet_exe);
+% Ytest  = TestSet_exe* coeff;
+% Ytrain = TrainSet_exe* coeff;
+% sub_exe = MultiSVM(Ytrain(:,1:20), labels_exe, Ytest(:,1:20));
 save('PCA_sub03_exe', 'sub_exe');

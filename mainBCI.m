@@ -22,11 +22,11 @@ Data.exe.Idle.signal    = data.train{4};
 Data.exe.test.signal = data.test;
 
 % EEG Signals
-FData.exe.Arm.signal     = Data.exe.Arm.signal(1:63,:,:);
-FData.exe.Thumb.signal   = Data.exe.Thumb.signal(1:63,:,:);
-FData.exe.Leg.signal     = Data.exe.Leg.signal(1:63,:,:);
-FData.exe.Idle.signal    = Data.exe.Idle.signal(1:63,:,:);
-
+FData.exe.Arm.signal     = Data.exe.Arm.signal(1:63,1:20:end,:);
+FData.exe.Thumb.signal   = Data.exe.Thumb.signal(1:63,1:20:end,:);
+FData.exe.Leg.signal     = Data.exe.Leg.signal(1:63,1:20:end,:);
+FData.exe.Idle.signal    = Data.exe.Idle.signal(1:63,1:20:end,:);
+fs = fs/20;
 % Start of Movement's Index
 [FData.exe.Arm.index, ~]   = find(squeeze(Data.exe.Arm.signal(64,:,:)));
 [FData.exe.Thumb.index, ~] = find(squeeze(Data.exe.Thumb.signal(64,:,:)));
@@ -34,7 +34,7 @@ FData.exe.Idle.signal    = Data.exe.Idle.signal(1:63,:,:);
 [FData.exe.Idle.index, ~]  = find(squeeze(Data.exe.Idle.signal(64,:,:)));
 
 
-FData.exe.test.signal    = Data.exe.test.signal(:,:,:);
+FData.exe.test.signal    = Data.exe.test.signal(:,1:20:end,:);
 
 clear Data
 
@@ -224,7 +224,6 @@ FData.exe.covMat(4, :, :) = cov(mean(FData.exe.Thumb.alpha_band + FData.exe.Thum
 
 spatialFilter_EXE = MulticlassCSP(squeeze(FData.exe.covMat), 2);
 
-%%
 for trials = 1 : s_Arm(3)
     FData.exe.Arm.CSP1(:, trials)    = squeeze(spatialFilter_EXE(1,:))*squeeze(FData.exe.Arm.signal(:,:,trials));
     FData.exe.Arm.CSP2(:, trials)    = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.exe.Arm.signal(:,:,trials));
@@ -364,238 +363,30 @@ for i = 1 : s_Idle(3)
     label(i+s_Arm(3)+s_Thumb(3)+s_Leg(3)) = 4;
     
 end
-%%
+
 label = label';
 Feature = Feature';
 
 %% ANOVA
-for i = 1 : size(Feature,1)
-    pVal(i) = anova1(Feature(i,:), label,'off');
-    if (mod(i,100000) == 0)
-        i
-    end
-end
+I = randperm(77);
+test_I  = I(1:15); 
+train_I = I(16:end);
 
+train_Set = Feature(:, train_I);
+test_Set = Feature(:, test_I);
+
+train_Label = label(train_I);
+test_Label = label(test_I);
+
+for i = 1 : size(train_Set, 1)
+    
+   pVal(i) = anova1(train_Set(i,:)', train_Label, 'off');
+   if(mod(i, 10000) == 0)
+       i
+   end
+    
+end
 %%
-% %%
-% Feature = [
-% 
-% %% JValue Matrix 
-% 
-% % J_Index s are not correct :(
-% 
-% clear J_EXE J_IMG
-% [J_EXE(:,1),~] = Jvalue(FData.exe.Arm, FData.exe.Leg);
-% [J_EXE(:,2),~] = Jvalue(FData.exe.Arm, FData.exe.Thumb);
-% [J_EXE(:,3),~] =  Jvalue(FData.exe.Arm, FData.exe.Idle);
-% [J_EXE(:,4),~] = Jvalue(FData.exe.Leg, FData.exe.Thumb);
-% [J_EXE(:,5),~] = Jvalue(FData.exe.Leg, FData.exe.Idle);
-% [J_EXE(:,6),J_EXE_Index,Feat] = Jvalue(FData.exe.Thumb, FData.exe.Idle);
-% 
-% 
-% [J_IMG(:,1),~] = Jvalue(FData.img.Arm, FData.img.Leg);
-% [J_IMG(:,2),~] = Jvalue(FData.img.Arm, FData.img.Thumb);
-% [J_IMG(:,3), J_IMG_Index] = Jvalue(FData.img.Leg, FData.img.Thumb);
-% 
-% %% 5 Fold Cross Validation
-% score = [];
-% num = [];
-% j = 0;
-% for i = 1 : 10 : 1000
-%     j = j + 1;
-%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
-%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-%     num(j) = i;
-% end
-% for i = 1001 : 100 : 10000
-%     j = j + 1;
-%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
-%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-%     num(j) = i;
-% end
-% for i = 10001 : 2000 : 20000
-%     j = j + 1;
-%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',100);
-%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-%     num(j) = i;
-% end
-% 
-% figure
-% semilogx(num, score);
-% title('5-Fold Cross Validation Score - Motor Execution');
-% ylabel('% of Correct Classification');
-% xlabel('Number of Features');
-% 
-% %%
-% score = [];
-% num = [];
-% j = 0;
-% for i = 1 : 10 : 1000
-%     j = j + 1;
-%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
-%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-%     num(j) = i;
-% end
-% for i = 1001 : 100 : 10000
-%     j = j + 1;
-%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',i);
-%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-%     num(j) = i;
-% end
-% for i = 10001 : 2000 : 20000
-%     j = j + 1;
-%     [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',100);
-%     score(j) = 100-Final_CrossVal(TrainSet, labels, 5, 10);
-%     num(j) = i;
-% end
-% %%
-% figure
-% semilogx(num, score);
-% title('5-Fold Cross Validation Score - Motor Imagery');
-% ylabel('% of Correct Classification');
-% xlabel('Number of Features');
-% 
-% 
-% %% A K-Fold like algorithm
-% DataSet = [];
-% labels = [];
-% [DataSet, labels, ~] = Feature_Selector(FData,'exe',100);
-%  
-% for i = 1 : 400
-%     I = randperm(80);
-%     TestIndex    = I(1:16);
-%     TrainIndex   = I(17:80);        
-%     result = MultiSVM(DataSet(TrainIndex,:), labels(TrainIndex), DataSet(TestIndex,:));
-%     correct(i) = sum(labels(TestIndex) == result')/length(result)*100;
-% end
-% correct = mean(correct)
-% 
-% %%
-% 
-% [TrainSet_exe, labels_exe, feature_list_exe, TestSet_exe] = Feature_Selector(FData, 'exe', 100);
-% sub11_exe = MultiSVM(TrainSet_exe,labels_exe, TestSet_exe);
-% 
-% [TrainSet_img, labels_img, feature_list_img, TestSet_img] = Feature_Selector(FData, 'img', 100);
-% sub11_img = MultiSVM(TrainSet_img,labels_img, TestSet_img);
-% 
-% %% Performing PCA on Features - EXE
-% 
-% [TrainSet, labels, feature_list2] = Feature_Selector(FData,'exe',1000);
-% [coeff,score,latent] = pca(TrainSet);
-% figure
-% stem(cumsum(latent)./sum(latent))
-% ylabel('Cumm. Sum of Cov Eigenvalue;');
-% xlabel('Eigenvector number');
-% 
-% Y = TrainSet* coeff;
-% figure
-% plot3(Y(1:20,1), Y(1:20,2), Y(1:20,3),'.');
-% hold on
-% plot3(Y(21:40,1), Y(21:40,2), Y(21:40,3),'.');
-% plot3(Y(41:60,1), Y(41:60,2), Y(41:60,3),'.');
-% plot3(Y(61:80,1), Y(61:80,2), Y(61:80,3),'.');
-% legend('Arm', 'Leg', 'Thumb', 'Idle');
-% xlabel('PCA 1')
-% ylabel('PCA 2')
-% zlabel('PCA 3')
-% title('PCA on exe Data');
-% 
-% labels(1:20)  = 1; labels(21:40) = 2;
-% labels(41:60) = 3; labels(61:80) = 4;
-% correct_mean = [];
-% correct = [];
-% correct_var = [];
-% 
-% for N = 1 : 79
-%     for i = 1 : 10
-%         I = randperm(80);
-%         TestIndex    = I(1:16);
-%         TrainIndex   = I(17:80);        
-%         result = MultiSVM(Y(TrainIndex,1:N), labels(TrainIndex), Y(TestIndex,1:N));
-%         correct(i) = sum(labels(TestIndex) == result')/length(result)*100;
-%     end
-%     correct_mean(N) = mean(correct);
-%     correct_var(N) = var(correct);
-% end
-% 
-% %%
-% figure
-% hold on
-% plot(correct_mean + sqrt(correct_var))
-% plot(correct_mean)
-% plot(correct_mean - sqrt(correct_var))
-% 
-% ylabel('Correct Percentage');
-% xlabel('Number of eigenvalues');
-% legend('Mean - STD','Mean', 'Mean + STD');
-% title('PCA Based Classification Cross Validation Results - EXE');
-% %% Performing PCA on Features - Img
-% 
-% [TrainSet, labels, feature_list2] = Feature_Selector(FData,'img',1000);
-% [coeff,score,latent] = pca(TrainSet);
-% figure
-% stem(cumsum(latent)./sum(latent))
-% ylabel('Cumm. Sum of Cov Eigenvalue;');
-% xlabel('Eigenvector number');
-% 
-% Y = TrainSet* coeff;
-% figure
-% plot3(Y(1:20,1), Y(1:20,2), Y(1:20,3),'.');
-% hold on
-% plot3(Y(21:40,1), Y(21:40,2), Y(21:40,3),'.');
-% plot3(Y(41:60,1), Y(41:60,2), Y(41:60,3),'.');
-% legend('Arm', 'Leg', 'Thumb');
-% xlabel('PCA 1')
-% ylabel('PCA 2')
-% zlabel('PCA 3')
-% title('PCA on img Data');
-% 
-% labels(1:20)  = 1; labels(21:40) = 2;
-% labels(41:60) = 3; 
-% correct_mean = [];
-% correct = [];
-% correct_var = [];
-% 
-% for N = 1 : 59
-%     for i = 1 : 10
-%         I = randperm(60);
-%         TestIndex    = I(1:12);
-%         TrainIndex   = I(13:60);        
-%         result = MultiSVM(Y(TrainIndex,1:N), labels(TrainIndex), Y(TestIndex,1:N));
-%         correct(i) = sum(labels(TestIndex) == result')/length(result)*100;
-%     end
-%     correct_mean(N) = mean(correct);
-%     correct_var(N) = var(correct);
-% end
-% %%
-% figure
-% hold on
-% plot(correct_mean + sqrt(correct_var))
-% plot(correct_mean)
-% plot(correct_mean - sqrt(correct_var))
-% 
-% ylabel('Correct Percentage');
-% xlabel('Number of eigenvalues');
-% legend('Mean - STD','Mean', 'Mean + STD');
-% title('PCA Based Classification Cross Validation Results - IMG');
-% 
-% %% Classify Test
-% Ytest = [];
-% Ytrain = [];
-% 
-% [TrainSet_img, labels_img, feature_list_img, TestSet_img] = Feature_Selector(FData, 'img', 100);
-% [coeff,score,latent] = pca(TrainSet_img);
-% Ytest  = TestSet_img* coeff;
-% Ytrain = TrainSet_img* coeff;
-% sub_img = MultiSVM(Ytrain(:,1:20), labels_img, Ytest(:,1:20));
-% save('PCA_sub03_img', 'sub_img');
-% %% Classify Test
-% Ytest = [];
-% Ytrain = [];
-% 
-% [TrainSet_exe, labels_exe, feature_list_exe, TestSet_exe] = Feature_Selector(FData, 'exe', 100);
-% [coeff,score,latent] = pca(TrainSet_exe);
-% Ytest  = TestSet_exe* coeff;
-% Ytrain = TrainSet_exe* coeff;
-% sub_exe = MultiSVM(Ytrain(:,1:20), labels_exe, Ytest(:,1:20));
-save('PCA_sub03_exe', 'sub_exe');
+Obj = fitcdiscr(train_Set(pVal<0.0001,:)', train_Label)
+predicted_Label = predict(Obj, test_Set(pVal<0.0001,:)')'
+test_Label'

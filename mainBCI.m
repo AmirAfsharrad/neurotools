@@ -7,6 +7,7 @@ load('subject_1.mat')
 cd('..')
 fs = 2400;
 
+
 %% Loading Preprocssed Data
 % clear
 % load Data.mat
@@ -211,65 +212,20 @@ for channels = 1 : 63
     FData.exe.Leg.STFT  (channels, :, :, :)  =  abs(STFT(squeeze(FData.exe.Leg.signal(channels, :, :)),10,0,15,fs));
     FData.exe.Idle.STFT (channels, :, :, :)  =  abs(STFT(squeeze(FData.exe.Idle.signal(channels, :, :)),10,0,15,fs));
     FData.exe.Thumb.STFT(channels, :, :, :)  =  abs(STFT(squeeze(FData.exe.Thumb.signal(channels, :, :)),10,0,15,fs));
-    FData.exe.test.STFT(channels, :, :, :)   =  abs(STFT(squeeze(FData.exe.test.signal(channels, :, :)),10,0,15,fs));
-
+    FData.exe.test.STFT (channels, :, :, :)  =  abs(STFT(squeeze(FData.exe.test.signal(channels, :, :)),10,0,15,fs));
 end
-
-%% Alpha and Beta Band Filtering
-h = BPF(360, 7  , 30, 120);
-
-for trials = 1 : 20
-    for channels = 1 : 64
-        FData.exe.Arm.mainbands(channels,:,trials)    = doFilt(h, FData.exe.Arm.signal(channels, :, trials));
-        FData.exe.Leg.mainbands(channels,:,trials)    = doFilt(h, FData.exe.Leg.signal(channels, :, trials));
-        FData.exe.Thumb.mainbands(channels,:,trials)  = doFilt(h, FData.exe.Thumb.signal(channels, :, trials));
-        FData.exe.Idle.mainbands(channels,:,trials)   = doFilt(h, FData.exe.Idle.signal(channels, :, trials));
-        
-        FData.img.Arm.mainbands(channels,:,trials)    = doFilt(h, FData.img.Arm.signal(channels, :, trials));
-        FData.img.Leg.mainbands(channels,:,trials)    = doFilt(h, FData.img.Leg.signal(channels, :, trials));
-        FData.img.Thumb.mainbands(channels,:,trials)  = doFilt(h, FData.img.Thumb.signal(channels, :, trials));
-    end
-end
-
-for trials = 1 : Nexe
-    for channels = 1 : 64
-        FData.exe.test.mainbands(channels,:,trials)    = doFilt(h, FData.exe.test.signal(channels, :, trials));
-    end
-end
-
-
-for trials = 1 : Nimg
-    for channels = 1 : 64
-        FData.img.test.mainbands(channels,:,trials)    = doFilt(h, FData.img.test.signal(channels, :, trials));
-    end
-end
-
-
-clear h
-%%
-figure
-hold on
-plotFFT(FData.exe.Leg.mainbands(11,:,12), 120, 0, 60, '', '', 10);
-plotFFT(FData.exe.Leg.signal(11,:,12), 120, 0, 60, '', '', 10);
-legend('full','\alpha and \beta');
 
 %% Common Spatial Patterns
-FData.exe.covMat(1, :, :) = cov(mean(FData.exe.Arm.mainbands, 3)');
-FData.exe.covMat(2, :, :) = cov(mean(FData.exe.Leg.mainbands, 3)');
-FData.exe.covMat(3, :, :) = cov(mean(FData.exe.Thumb.mainbands, 3)');
-FData.exe.covMat(4, :, :) = cov(mean(FData.exe.Idle.mainbands, 3)');
 
-
-
-FData.img.covMat(1, :, :) = cov(mean(FData.img.Arm.mainbands, 3)');
-FData.img.covMat(2, :, :) = cov(mean(FData.img.Leg.mainbands, 3)');
-FData.img.covMat(3, :, :) = cov(mean(FData.img.Thumb.mainbands, 3)');
-
+FData.exe.covMat(1, :, :) = cov(mean(FData.exe.Arm.alpha_band + FData.exe.Arm.beta_band, 3)');
+FData.exe.covMat(2, :, :) = cov(mean(FData.exe.Arm.alpha_band + FData.exe.Arm.beta_band, 3)');
+FData.exe.covMat(3, :, :) = cov(mean(FData.exe.Arm.alpha_band + FData.exe.Arm.beta_band, 3)');
+FData.exe.covMat(4, :, :) = cov(mean(FData.exe.Arm.alpha_band + FData.exe.Arm.beta_band, 3)');
 
 spatialFilter_EXE = MulticlassCSP(squeeze(FData.exe.covMat), 2);
-spatialFilter_IMG = MulticlassCSP(squeeze(FData.img.covMat), 2);
 
 
+%%
 for trials = 1 : 20
     FData.exe.Arm.CSP1(:, trials)    = squeeze(spatialFilter_EXE(1,:))*squeeze(FData.exe.Arm.signal(:,:,trials));
     FData.exe.Arm.CSP2(:, trials)    = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.exe.Arm.signal(:,:,trials));
@@ -279,14 +235,6 @@ for trials = 1 : 20
     FData.exe.Idle.CSP2(:, trials)   = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.exe.Idle.signal(:,:,trials));
     FData.exe.Thumb.CSP1(:, trials)  = squeeze(spatialFilter_EXE(1,:))*squeeze(FData.exe.Thumb.signal(:,:,trials));
     FData.exe.Thumb.CSP2(:, trials)  = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.exe.Thumb.signal(:,:,trials));
-    
-    
-    FData.img.Arm.CSP1(:, trials)    = squeeze(spatialFilter_IMG(1,:))*squeeze(FData.img.Arm.signal(:,:,trials));
-    FData.img.Arm.CSP2(:, trials)    = squeeze(spatialFilter_IMG(2,:))*squeeze(FData.img.Arm.signal(:,:,trials));
-    FData.img.Leg.CSP1(:, trials)    = squeeze(spatialFilter_IMG(1,:))*squeeze(FData.img.Leg.signal(:,:,trials));
-    FData.img.Leg.CSP2(:, trials)    = squeeze(spatialFilter_IMG(2,:))*squeeze(FData.img.Leg.signal(:,:,trials));
-    FData.img.Thumb.CSP1(:, trials)  = squeeze(spatialFilter_IMG(1,:))*squeeze(FData.img.Thumb.signal(:,:,trials));
-    FData.img.Thumb.CSP2(:, trials)  = squeeze(spatialFilter_IMG(2,:))*squeeze(FData.img.Thumb.signal(:,:,trials));
 end
 
 for trials = 1 : Nexe
@@ -296,13 +244,6 @@ for trials = 1 : Nexe
     end
 end
 
-
-for trials = 1 : Nimg
-    for channels = 1 : 64
-        FData.img.test.CSP1(:, trials)  = squeeze(spatialFilter_EXE(1,:))*squeeze(FData.img.test.signal(:,:,trials));
-        FData.img.test.CSP2(:, trials)  = squeeze(spatialFilter_EXE(2,:))*squeeze(FData.img.test.signal(:,:,trials));
-    end
-end
 %% Checking CSP
 
 figure

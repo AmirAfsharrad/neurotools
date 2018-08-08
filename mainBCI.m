@@ -366,9 +366,15 @@ for i = 1 : s_Idle(3)
 end
 %%
 label = label';
+Feature = Feature';
 
 %% ANOVA
-pVal = anova1(Feature', label);
+for i = 1 : size(Feature,1)
+    pVal(i) = anova1(Feature(i,:), label,'off');
+    if (mod(i,100000) == 0)
+        i
+    end
+end
 
 %%
 % %%

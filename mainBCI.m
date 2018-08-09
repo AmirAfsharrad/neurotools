@@ -3,7 +3,7 @@ clc
 close
 
 cd('./dataset')
-load('subject_1.mat')
+load('subject_2.mat')
 cd('..')
 fs = 2400;
 
@@ -87,7 +87,6 @@ FData.exe.Idle.RMS   =  squeeze(rms(FData.exe.Idle.signal,2));
 FData.exe.Thumb.RMS  =  squeeze(rms(FData.exe.Thumb.signal,2));
 FData.exe.test.RMS   =  squeeze(rms(FData.exe.test.signal,2));
 
-
 %% Mean Freq
 
 for channel = 1 : 63
@@ -134,7 +133,6 @@ h_alpha = BPF(7200, 7.5  , 13.5, fs);
 h_beta =  BPF(7200, 13.5 , 20, fs);
 h_theta = BPF(7200, 3.5  ,  7.5, fs);
 h_delta = BPF(7200, eps,  3.5, fs);
-
 
 %% Filtering Frequency Bands
 
@@ -262,6 +260,7 @@ plotFFT(FData.exe.Arm.signal(1,:,10), fs, 0, 600, '','|fft|',10)
 legend('a Sample CSP','a Sample CSP(\alpha and \beta)','Original Signal')
 
 %% Feature Matrix as a Whole
+
 Feature = [];
 label = [];
 for i = 1 : s_Arm(3)
@@ -283,8 +282,7 @@ for i = 1 : s_Arm(3)
                     FData.exe.Arm.CSP1(:,i)' ...
                     FData.exe.Arm.CSP2(:,i)' ...
                     ];
-    label(i) = 1;
-    
+    label(i) = 1;    
 end
 
 for i = 1 : s_Thumb(3)
@@ -308,7 +306,6 @@ for i = 1 : s_Thumb(3)
                     FData.exe.Thumb.CSP2(:,i)' ...
                     ];
     label(i+s_Arm(3)) = 2;
-    
 end
 
 for i = 1 : s_Leg(3)
@@ -332,7 +329,6 @@ for i = 1 : s_Leg(3)
                     FData.exe.Leg.CSP2(:,i)' ...
                     ];
     label(i+s_Arm(3)+s_Thumb(3)) = 3;
-    
 end
 
 
@@ -357,11 +353,33 @@ for i = 1 : s_Idle(3)
                     FData.exe.Idle.CSP2(:,i)' ...
                     ];
     label(i+s_Arm(3)+s_Thumb(3)+s_Leg(3)) = 4;
-    
 end
 
 label = label';
 Feature = Feature';
+
+for i = 1 : s_Test(3)
+    Test_Feature(i,:) =...
+                    [reshape(FData.exe.test.signal(:,:,i),1,[]) ...
+                    FData.exe.test.var(:,i)' FData.exe.test.skew(:,i)' ...
+                    FData.exe.test.RMS(:,i)' FData.exe.test.meanFreq(:,i)' ...
+                    FData.exe.test.medFreq(:,i)'...
+                    reshape(FData.exe.test.DST(:,:,i),1,[]) ...
+                    reshape(FData.exe.test.DCT(:,:,i),1,[]) ...
+                    reshape(FData.exe.test.alpha_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.test.beta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.test.theta_band(:,:,i),1,[]) ...
+                    reshape(FData.exe.test.delta_band(:,:,i),1,[]) ...
+                    FData.exe.test.alphaEnergy(:,i)'...
+                    FData.exe.test.betaEnergy(:,i)'...
+                    FData.exe.test.thetaEnergy(:,i)'...
+                    FData.exe.test.deltaEnergy(:,i)'...
+                    reshape(FData.exe.test.STFT(:,:,:,i),1,[]) ...
+                    FData.exe.test.CSP1(:,i)' ...
+                    FData.exe.test.CSP2(:,i)' ...
+                    ];
+end
+
 
 %% Feature Names
 
@@ -387,6 +405,7 @@ FeatureName = [repmat({'Signal'}, 1, length(reshape(FData.exe.Arm.signal(:,:,1),
 ];
                   
 %% ANOVA for Hold-Out Validation
+
 I = randperm(77);
 test_I  = I(1:15); 
 train_I = I(16:end);
@@ -405,9 +424,11 @@ for i = 1 : size(train_Set, 1)
 end
 
 %% Hold-Out Validation
+
 Obj = fitcdiscr(train_Set(pVal<0.0001,:)', train_Label)
-predicted_Label = predict(Obj, test_Set(pVal<0.0001,:)')'
+predict(Obj, test_Set(pVal<0.0001,:)')'
 test_Label'
+
 
 %% Complete ANOVA
 
@@ -419,8 +440,17 @@ for i = 1 : size(Feature, 1)
 end
 
 %% Choosen Features
-figure
 
+figure
 pie(categorical(FeatureName(pVal<0.0001)))
 figure
 histogram(categorical(FeatureName(pVal<0.0001)))
+
+%% Train LDA Classifier
+
+Obj = fitcdiscr(Feature(pVal<0.0001,:)', label)
+
+%% Classify Test Signals
+
+predicted_Label = predict(Obj, Test_Feature(:, pVal<0.0001))
+

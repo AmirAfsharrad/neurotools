@@ -5,9 +5,9 @@ load('complete_train.mat');
 cd('./dataset')
 load('subject_1.mat')
 cd('..')
-Data.exe.signal = data.train{1};
 
-Test.exe.signal    = Data.exe.signal(1:end-1,1:20:end,:);
+Test.exe.signal = data.test(:,1:20:end, :);
+
 s_Test  = size(Test.exe.signal);
 mean_test    = reshape(repmat(squeeze(mean(Test.exe.signal, 2)), [1, 1, s_Test(2)]), [s_Test(1), s_Test(2), s_Test(3)]);
 
@@ -63,7 +63,7 @@ for trials = 1 : s_Test(3)
     Test.exe.CSP2(:, trials)  = squeeze(spatialFilter_EXE(2,:))*squeeze(Test.exe.signal(:,:,trials));
 end
 
-
+%%
 for i = 1 : s_Test(3)
     Test_Feature(i,:) =...
                     [reshape(Test.exe.signal(:,:,i),1,[]) ...
@@ -86,19 +86,6 @@ for i = 1 : s_Test(3)
                     ];
 end
 
-%% Choosen Features
-
-figure
-pie(categorical(FeatureName(pVal<0.0001)))
-figure
-histogram(categorical(FeatureName(pVal<0.0001)))
-
-%% Train LDA Classifier
-
-Obj = fitcdiscr(Feature(pVal<0.0001,:)', label)
-
 %% Classify Test Signals
 
 predicted_Label = predict(Obj, Test_Feature(:, pVal<0.0001))
-
-

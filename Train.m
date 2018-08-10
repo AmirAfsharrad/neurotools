@@ -355,27 +355,48 @@ FeatureName = [repmat({'Signal'}, 1, length(reshape(FData.exe.Arm.signal(:,:,1),
 ];
                   
 %% ANOVA for Hold-Out Validation
+% 
+% I = randperm(77);
+% test_I  = I(1:20);
+% train_I = I(21:end);
+% 
+% train_Set = Feature(:, train_I);
+% test_Set = Feature(:, test_I);
+% 
+% train_Label = label(train_I);
+% test_Label = label(test_I);
+% 
+% for i = 1 : size(train_Set, 1)
+%     pVal(i) = anova1(train_Set(i,:)', train_Label, 'off');
+%     if(mod(i, 10000) == 0)
+%         i
+%     end
+% end
+% 
+% %% Hold-Out Validation
+% 
+% Obj = fitcdiscr(train_Set(pVal<0.0001,:)', train_Label)
+% predict(Obj, test_Set(pVal<0.0001,:)')'
+% test_Label'
+% clear pVal
 
-I = randperm(77);
-test_I  = I(1:20); 
-train_I = I(21:end);
-
-train_Set = Feature(:, train_I);
-test_Set = Feature(:, test_I);
-
-train_Label = label(train_I);
-test_Label = label(test_I);
-
-for i = 1 : size(train_Set, 1)
-   pVal(i) = anova1(train_Set(i,:)', train_Label, 'off');
-   if(mod(i, 10000) == 0)
-       i
-   end
+%% ANOVA
+for i = 1 : size(Feature, 1)
+    pVal(i) = anova1(Feature(i,:)', label, 'off');
+    if(mod(i, 10000) == 0)
+        i
+    end
 end
 
-%% Hold-Out Validation
+%% Choosen Features
 
-Obj = fitcdiscr(train_Set(pVal<0.0001,:)', train_Label)
-predict(Obj, test_Set(pVal<0.0001,:)')'
-test_Label'
+figure
+pie(categorical(FeatureName(pVal<0.0001)))
+figure
+histogram(categorical(FeatureName(pVal<0.0001)))
 
+%% Train
+Obj = fitcdiscr(Feature(pVal<0.0001,:)', label)
+
+%% Save
+save('complete_train.mat')

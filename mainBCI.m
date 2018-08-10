@@ -7,7 +7,6 @@ load('subject_1.mat')
 cd('..')
 fs = 2400;
 
-
 %% Loading Preprocssed Data
 % clear
 % load Data.mat
@@ -168,12 +167,12 @@ clear h_alpha h_beta h_delta h_theta
 %% Checking The Procedure
 
 figure
-plotFFT(FData.exe.Arm.signal(1,:,16), fs, 0, 60, 'FFT','|fft|',10);
+plotFFT(FData.exe.test.signal(1,:,16), fs, 0, 60, 'FFT','|fft|',10);
 hold on
-plotFFT(FData.exe.Arm.alpha_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
-plotFFT(FData.exe.Arm.beta_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
-plotFFT(FData.exe.Arm.theta_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
-plotFFT(FData.exe.Arm.delta_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
+plotFFT(FData.exe.test.alpha_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
+plotFFT(FData.exe.test.beta_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
+plotFFT(FData.exe.test.theta_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
+plotFFT(FData.exe.test.delta_band(1,:,16), fs, 0, 60, 'FFT of exe.test Channel 2 Trial 16 ','',10);
 legend('full','alpha','beta','theta','delta');
 
 %% Freq Band Energy
@@ -407,8 +406,8 @@ FeatureName = [repmat({'Signal'}, 1, length(reshape(FData.exe.Arm.signal(:,:,1),
 %% ANOVA for Hold-Out Validation
 
 I = 1:77;
-test_I  = I(1:20); 
-train_I = I(21:end);
+test_I  = I(1:5); 
+train_I = I(6:end);
 
 train_Set = Feature(:, train_I);
 test_Set = Feature(:, test_I);

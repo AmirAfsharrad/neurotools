@@ -3,7 +3,7 @@ clc
 close
 
 cd('./dataset')
-load('subject_2.mat')
+load('subject_1.mat')
 cd('..')
 fs = 2400;
 
@@ -52,7 +52,7 @@ mean_leg     = reshape(repmat(squeeze(mean(FData.exe.Leg.signal, 2)), [1, 1, s_L
 mean_thumb   = reshape(repmat(squeeze(mean(FData.exe.Thumb.signal, 2)), [1, 1, s_Thumb(2)]), [s_Thumb(1), s_Thumb(2), s_Thumb(3)]);
 mean_idle    = reshape(repmat(squeeze(mean(FData.exe.Idle.signal, 2)), [1, 1, s_Idle(2)]), [s_Idle(1), s_Idle(2), s_Idle(3)]);
 
-mean_test = reshape(repmat(squeeze(mean(FData.exe.test.signal, 2)), [1, 1, s_Test(2)]), [s_Test(1), s_Test(2), s_Test(3)]);
+mean_test    = reshape(repmat(squeeze(mean(FData.exe.test.signal, 2)), [1, 1, s_Test(2)]), [s_Test(1), s_Test(2), s_Test(3)]);
 
 FData.exe.Arm.signal   = FData.exe.Arm.signal   - mean_arm;
 FData.exe.Leg.signal   = FData.exe.Leg.signal   - mean_leg;
@@ -406,9 +406,9 @@ FeatureName = [repmat({'Signal'}, 1, length(reshape(FData.exe.Arm.signal(:,:,1),
                   
 %% ANOVA for Hold-Out Validation
 
-I = randperm(77);
-test_I  = I(1:15); 
-train_I = I(16:end);
+I = 1:77;
+test_I  = I(1:20); 
+train_I = I(21:end);
 
 train_Set = Feature(:, train_I);
 test_Set = Feature(:, test_I);

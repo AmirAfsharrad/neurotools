@@ -135,6 +135,26 @@ Train_Label = label(label ~= 0);
 
 Test_Feature = Feature(label == 0, :);
 
+%% Hold-out Validating
+I = randperm(size(Train_Feature, 1));
+HoldOut_Test_Feature = Train_Feature(I(1:15), :);
+HoldOut_Train_Feature  = Train_Feature(I(16:end), :);
+
+HoldOut_Test_Label  = Train_Label(I(1:15));
+HoldOut_Train_Label = Train_Label(I(16:end));
+
+for i = 1 : size(HoldOut_Train_Feature, 2)
+    pVal(i) = anova1(HoldOut_Train_Feature(:,i), HoldOut_Train_Label, 'off');
+    if(mod(i, 10000) == 0)
+        i
+    end
+end
+
+Obj = fitcdiscr(HoldOut_Train_Feature(:, pVal<0.0001), HoldOut_Train_Label)
+
+predict(Obj, HoldOut_Test_Feature(:,pVal<0.0001))'
+HoldOut_Test_Label
+
 %% ANOVA
 
 for i = 1 : size(Train_Feature, 2)

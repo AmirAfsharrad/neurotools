@@ -6,7 +6,14 @@ cd('./dataset')
 load('subject_1.mat')
 cd('..')
 
-Test.exe.signal = data.test(:,1:20:end, :);
+a = data.train{1};
+Test.exe.signal(:,:,1:2) = a(1:63, 1:20:end, 1 : 2);
+a = data.train{2};
+Test.exe.signal(:,:,3:4) = a(1:63, 1:20:end, 1 : 2);
+a = data.train{3};
+Test.exe.signal(:,:,5:6) = a(1:63, 1:20:end, 1 : 2);
+a = data.train{4};
+Test.exe.signal(:,:,7:8) = a(1:63, 1:20:end, 1 : 2);
 
 s_Test  = size(Test.exe.signal);
 mean_test    = reshape(repmat(squeeze(mean(Test.exe.signal, 2)), [1, 1, s_Test(2)]), [s_Test(1), s_Test(2), s_Test(3)]);
@@ -88,4 +95,4 @@ end
 
 %% Classify Test Signals
 
-predicted_Label = predict(Obj, Test_Feature(:, pVal<0.0001))
+predicted_Label = predict(Obj, Test_Feature(:, pVal<0.001))

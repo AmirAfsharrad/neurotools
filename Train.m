@@ -20,10 +20,10 @@ Data.exe.Leg.signal     = data.train{3};
 Data.exe.Idle.signal    = data.train{4};
 
 % EEG Signals
-FData.exe.Arm.signal     = Data.exe.Arm.signal(1:63,1:20:end,:);
-FData.exe.Thumb.signal   = Data.exe.Thumb.signal(1:63,1:20:end,:);
-FData.exe.Leg.signal     = Data.exe.Leg.signal(1:63,1:20:end,:);
-FData.exe.Idle.signal    = Data.exe.Idle.signal(1:63,1:20:end,:);
+FData.exe.Arm.signal     = Data.exe.Arm.signal(1:63,1:20:end,1:end-2);
+FData.exe.Thumb.signal   = Data.exe.Thumb.signal(1:63,1:20:end,1:end-2);
+FData.exe.Leg.signal     = Data.exe.Leg.signal(1:63,1:20:end,1:end-2);
+FData.exe.Idle.signal    = Data.exe.Idle.signal(1:63,1:20:end,1:end-2);
 fs = fs/20;
 
 % Start of Movement's Index
@@ -397,6 +397,9 @@ histogram(categorical(FeatureName(pVal<0.0001)))
 
 %% Train
 Obj = fitcdiscr(Feature(pVal<0.0001,:)', label)
+
+figure
+histogram(predict(Obj, Feature(pVal<0.0001,:)'))
 
 %% Save
 save('complete_train.mat')

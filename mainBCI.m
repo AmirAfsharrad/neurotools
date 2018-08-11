@@ -154,6 +154,10 @@ Obj = fitcdiscr(HoldOut_Train_Feature(:, pVal<0.0001), HoldOut_Train_Label)
 
 predict(Obj, HoldOut_Test_Feature(:,pVal<0.0001))'
 HoldOut_Test_Label
+predicted = predict(Obj, HoldOut_Test_Feature(:,pVal<0.0001))'
+percentage = sum(predicted==HoldOut_Test_Label)/size(predicted,2)
+
+
 
 %% ANOVA
 
